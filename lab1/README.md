@@ -3,7 +3,7 @@
 ## Contents
 
 - Objective
-- Setting up Podman and the Apache container
+- Setting up Podman and the Apache Server container
 - Scheme
 - Creating the certification hierarchy
   - Generating the certificate request for the CA
@@ -14,7 +14,7 @@
   - Issue the signature of the user certificate
   - Export the user certificate and its private key
   - Install the certificates in the browser
-- Apache Configuration
+- Apache Server Configuration
   - Start/Stop/Restart the Apache container
   - Apache configuration to authenticate the server
   - Configure a VirtualHost to use SSL
@@ -129,6 +129,12 @@ podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 openssl
   volume on SELinux hosts. Podman ignores it on hosts without SELinux.
 - `-w /si` sets the working directory inside the container.
 
+Create an alias to run openssl
+
+```bash
+alias popenssl 'podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 openssl'
+```
+
 ## Scheme
 
 The table shows the entities and the attribute values.
@@ -190,9 +196,8 @@ the CA extensions.
 Generate the key pair and the request:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl req -new -extensions v3_ca -config ca_cert.cnf \
-    -keyout ssl.key/ca_key.pem -out ssl.csr/ca_cert-req.pem
+popenssl req -new -extensions v3_ca -config ca_cert.cnf \
+  -keyout ssl.key/ca_key.pem -out ssl.csr/ca_cert-req.pem
 ```
 
 Enter the passphrase `repollo` twice. For the attributes, use the CA values
@@ -208,9 +213,8 @@ This marks the attribute as empty.
 Check the request:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl asn1parse -i -dump -in ssl.csr/ca_cert-req.pem \
-    -out ssl.csr/ca_cert-req.txt
+popenssl asn1parse -i -dump -in ssl.csr/ca_cert-req.pem \
+  -out ssl.csr/ca_cert-req.txt
 ```
 
 Review the text file and find your information and the public key.
@@ -220,9 +224,8 @@ Review the text file and find your information and the public key.
 Generate the self-signed certificate of the CA:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl x509 -req -in ssl.csr/ca_cert-req.pem -signkey ssl.key/ca_key.pem \
-    -days 365 -out ssl.crt/ca_cert.crt -extfile ca_cert.cnf -extensions v3_ca
+popenssl x509 -req -in ssl.csr/ca_cert-req.pem -signkey ssl.key/ca_key.pem \
+  -days 365 -out ssl.crt/ca_cert.crt -extfile ca_cert.cnf -extensions v3_ca
 ```
 
 Enter the passphrase from the previous step.
@@ -235,8 +238,7 @@ Parse the new certificate and find the fields with your information and the
 public key:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl asn1parse -i -dump -in ssl.crt/ca_cert.crt -out ssl.crt/ca_cert.txt
+popenssl asn1parse -i -dump -in ssl.crt/ca_cert.crt -out ssl.crt/ca_cert.txt
 ```
 
 The CA is ready. Next, create the server certificate.
@@ -522,7 +524,7 @@ Open `$HOME/si/apache/lab-ssl.conf` and make the following changes.
     SSLCACertificateFile "/si/ssl.crt/ca_cert.crt"
     ```
 
-5. Add the following block at the end of the file to allow access to the web
+5. Add the following block at the end of the file, within the <VirtualHost> definition to allow access to the web
    pages:
 
     ```apache
@@ -583,7 +585,7 @@ This tells Apache to ask the browser for a client certificate when the TLS
 connection starts. Apache sends the names of the trusted CAs, so the browser can
 select the correct certificate. The server does not require the certificate yet.
 
-Add a new `<Directory>` block at the end of the file:
+Add a new `<Directory>` block at the end of the file, within the <VirtualHost> block:
 
 ```apache
 <Directory "/si/www-ssl/private">
@@ -617,6 +619,8 @@ the public page.
 
 ### Validate with curl without a browser
 
+> Aquesta part no funciona torna el error `error adding trust anchors from file: ./ssl.crt/ca_cert.crt`
+
 If the lab PC blocks the Firefox certificate import, use `curl`. It checks the
 same TLS behavior and needs no browser profile and no admin rights. Firefox
 remains the main path.
@@ -626,6 +630,7 @@ Check the server certificate. The CA file lets `curl` trust the server:
 ```bash
 curl --cacert $HOME/si/ssl.crt/ca_cert.crt https://localhost:8443/
 ```
+> Aquesta comanda em falla: `curl --cacert ./ssl.crt/ca_cert.crt https://localhost:8443/` Sembla que CURL no pot accedir a la meva ruta: `/dades/marc.catrisse/labsi/Lab1/solution`. SI que puc fer obrir el fitxer amb el cat via terminal, però el curl no pot... Raro
 
 Check the client certificate. Pass the p12 file and its password after a colon.
 The `-i` option shows the response headers and the page. The private page returns
