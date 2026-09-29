@@ -277,9 +277,8 @@ DNS.1 = localhost
 Issue the certificate request for the server:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl req -new -nodes -extensions req_ext -config server_cert.cnf \
-    -keyout ssl.key/server_key.pem -out ssl.csr/server_cert-req.pem
+popenssl req -new -nodes -extensions req_ext -config server_cert.cnf \
+  -keyout ssl.key/server_key.pem -out ssl.csr/server_cert-req.pem
 ```
 
 The `-nodes` option writes the server key without a passphrase. Apache reads
@@ -299,8 +298,7 @@ Warnings:
 Check that the request is well-formed:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl req -in ssl.csr/server_cert-req.pem -text -verify
+popenssl req -in ssl.csr/server_cert-req.pem -text -verify
 ```
 
 ### Issue the signature of the server certificate
@@ -309,11 +307,10 @@ The CA signs the server certificate for one year. The command asks for the CA
 passphrase:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl x509 -req -in ssl.csr/server_cert-req.pem \
-    -out ssl.crt/server_cert.crt -days 365 \
-    -CA ssl.crt/ca_cert.crt -CAkey ssl.key/ca_key.pem -CAcreateserial \
-    -extfile server_cert.cnf -extensions req_ext
+popenssl x509 -req -in ssl.csr/server_cert-req.pem \
+  -out ssl.crt/server_cert.crt -days 365 \
+  -CA ssl.crt/ca_cert.crt -CAkey ssl.key/ca_key.pem -CAcreateserial \
+  -extfile server_cert.cnf -extensions req_ext
 ```
 
 Warning: a certificate does not inherit the extensions from the request. Add
@@ -322,23 +319,20 @@ them at signing time with `-extfile` and `-extensions`.
 Parse the new certificate to check that the information is correct:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl asn1parse -i -dump -in ssl.crt/server_cert.crt \
-    -out ssl.crt/server_cert.txt
+popenssl asn1parse -i -dump -in ssl.crt/server_cert.crt \
+  -out ssl.crt/server_cert.txt
 ```
 
 Verify that the certificate is well-formed:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl x509 -in ssl.crt/server_cert.crt -text
+popenssl x509 -in ssl.crt/server_cert.crt -text
 ```
 
 Verify that the server certificate holds your settings:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl x509 -in ssl.crt/server_cert.crt -text -noout | grep -A1 Subject
+popenssl x509 -in ssl.crt/server_cert.crt -text -noout | grep -A1 Subject
 ```
 
 The output shows the subject and the SAN values:
@@ -375,9 +369,8 @@ The `v3_client` section marks the certificate as a client certificate.
 Issue the certificate request:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl req -new -config client_cert.cnf -extensions v3_client \
-    -keyout ssl.key/client_key.pem -out ssl.csr/client_cert-req.pem
+popenssl req -new -config client_cert.cnf -extensions v3_client \
+  -keyout ssl.key/client_key.pem -out ssl.csr/client_cert-req.pem
 ```
 
 Use the attribute values from the scheme. For the Common Name, enter your name:
@@ -387,8 +380,7 @@ Email Address `<student email>`.
 Check that the request is well-formed:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl req -in ssl.csr/client_cert-req.pem -text -verify
+popenssl req -in ssl.csr/client_cert-req.pem -text -verify
 ```
 
 ### Issue the signature of the user certificate
@@ -398,8 +390,7 @@ to a certificate, so add them during the signature with `-extfile` and
 `-extensions`:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl x509 -req -in ssl.csr/client_cert-req.pem \
+  popenssl x509 -req -in ssl.csr/client_cert-req.pem \
     -out ssl.crt/client_cert.crt -days 365 \
     -CA ssl.crt/ca_cert.crt -CAkey ssl.key/ca_key.pem -CAcreateserial \
     -extfile client_cert.cnf -extensions v3_client
@@ -408,9 +399,8 @@ podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
 Check that the certificate contains the client authentication extension:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl x509 -in ssl.crt/client_cert.crt -text -noout \
-  | grep -A1 'Extended Key Usage'
+popenssl x509 -in ssl.crt/client_cert.crt -text -noout \
+| grep -A1 'Extended Key Usage'
 ```
 
 The output shows `TLS Web Client Authentication`.
@@ -421,9 +411,8 @@ Export the user certificate and key in one file. The PKCS#12 file is protected
 by a password:
 
 ```bash
-podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 \
-  openssl pkcs12 -export -in ssl.crt/client_cert.crt \
-    -inkey ssl.key/client_key.pem -out client_cert.p12 -name "clientCert"
+popenssl pkcs12 -export -in ssl.crt/client_cert.crt \
+  -inkey ssl.key/client_key.pem -out client_cert.p12 -name "clientCert"
 ```
 
 Warning: keep the `.p12` file safe and do not forget the password. The browser
