@@ -28,40 +28,26 @@ be using is `siupc.cat`.
 ## How to install
 
 **IMPORTANT:** Before starting, make sure that you don't have any container
-running on docker:
+running on podman:
 
 ```bash
-sudo docker ps
+sudo podman ps
 ```
 
 If there is, stop and delete it by running:
 
 ```bash
-sudo docker stop [container name] && sudo docker rm [container name]
+sudo podman stop [container name] && sudo podman rm [container name]
 ```
 
-1. Download and run the base image "Linux Ubuntu LTS 64 bits" from
-   <https://softdocencia.fib.upc.edu/software/> (user/pass: alumne/sistemes)
-
-   The rest of the steps assume you are using the Virtual Machine.
-
-2. Install docker, as we will use it to simulate a little network:
-
-   ```bash
-   sudo apt update && sudo apt install -y docker.io
-   ```
-
-   **Tip:** If you want to manage Docker as a non-root user, you need to execute
-   the following command and restart the VM: `sudo usermod -aG docker $USER`
-
-3. Create the docker network that will be used by the containers to talk to each
+1. Create the podman network that will be used by the containers to talk to each
    other:
 
    ```bash
-   sudo docker network create openam
+   sudo podman network create openam
    ```
 
-4. Prepare the environment, editing the `/etc/hosts` file, running the following
+2. Prepare the environment, editing the `/etc/hosts` file, running the following
    commands:
 
    ```bash
@@ -70,17 +56,17 @@ sudo docker stop [container name] && sudo docker rm [container name]
 
 ### Configure Identity Provider
 
-1. Start OpenAM for the Identity Provider in Docker:
+1. Start OpenAM for the Identity Provider in Podman:
 
    ```bash
-   sudo docker run -d --network openam -h idp.siupc.cat --name idp_openam \
+   sudo podman run -d --network openam -h idp.siupc.cat --name idp_openam \
      ghcr.io/robertobarreda/openidentityplatform/openam
    ```
 
 2. Editing the `/etc/hosts` file, running the following commands:
 
    ```bash
-   sudo docker inspect -f \
+   sudo podman inspect -f \
      '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}} {{.Config.Hostname}}' \
      idp_openam | sudo tee -a /etc/hosts
    ```
@@ -132,17 +118,17 @@ sudo docker stop [container name] && sudo docker rm [container name]
 
 ### Configure Service Provider
 
-1. Start OpenAM for the Identity Provider in Docker:
+1. Start OpenAM for the Identity Provider in Podman:
 
    ```bash
-   sudo docker run -d --network openam -h sp.siupc.cat --name sp_openam \
+   sudo podman run -d --network openam -h sp.siupc.cat --name sp_openam \
      ghcr.io/robertobarreda/openidentityplatform/openam
    ```
 
 2. Editing the `/etc/hosts` file, running the following commands:
 
    ```bash
-   sudo docker inspect -f \
+   sudo podman inspect -f \
      '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}} {{.Config.Hostname}}' \
      sp_openam | sudo tee -a /etc/hosts
    ```
@@ -271,21 +257,21 @@ After this, we have to prepare a web server. This requires two steps:
 2. Run an apache server with the following command:
 
    ```bash
-   sudo docker run -it --name apache_agent -p 80:80 -h www.siupc.cat \
+   sudo podman run -it --name apache_agent -p 80:80 -h www.siupc.cat \
      --network openam --shm-size 2G -e PA_PASSWORD=passw0rd \
      ghcr.io/robertobarreda/openam-web-agents/apache_agent
    ```
 
 Now, you can open Wireshark (`sudo wireshark`), start capturing the packets of
-the `br-XXXX` interface and apply a HTTP filter. To know which interface you
+the `podman1` interface and apply a HTTP filter. To know which interface you
 should capture with run the following commands:
 
 ```bash
-sudo docker network inspect openam --format '{{.ID}}'
+sudo podman network inspect openam --format '{{.NetworkInterface}}'
 ```
 
 ```text
-c77fb5649f59bfe31f53ad532a4e224b376a0f4ea00aad57ecb22f83416ce440
+podman1
 ```
 
 ```bash
@@ -296,8 +282,8 @@ ip -br a
 lo               UNKNOWN        127.0.0.1/8 ::1/128
 enp0s3           UP             10.0.2.15/24
 fe80::44e4:a1db:76bb:174a/64
-docker0          DOWN           172.17.0.1/16
-br-c77fb5649f59  UP             172.18.0.1/16          // <- this one
+podman0          DOWN           10.88.0.1/16
+podman1          UP             10.89.0.1/16          // <- this one
 ```
 
 **IMPORTANT:** To avoid messing up with the cookies, it is highly recommended to
