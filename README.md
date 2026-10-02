@@ -12,9 +12,9 @@ attack.
 
 ## Labs
 
-1. Digital Certificates
-2. Vulnerabilities in web applications
-3. Federated authentication and authorization
+1. [Digital Certificates](lab1/README.md)
+2. [Vulnerabilities in web applications](lab2/README.md)
+3. [Federated authentication and authorization](lab3/README.md)
 4.
 5.
 6.
