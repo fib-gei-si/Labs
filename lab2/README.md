@@ -2,22 +2,22 @@
 
 ## Contents
 
-- 1. Objective
-- 2. How to install
-- 3. Exercises
-  - 3.1. Parameter Tampering
-    - 3.1.1. Hidden fields
-    - 3.1.2. e-mail not validated
-    - 3.1.3. Avoid validations on the client side
-    - 3.1.4. Fail Open Authentication Scheme
-  - 3.2. Session administration and authentication
-    - 3.2.1. Authentication using cookies
-  - 3.3. Injection Flaws
-    - 3.3.1. SQL Injection
-    - 3.3.2. JSON Injection
-- 4. References
+- Objective
+- How to install
+- Exercises
+  - Parameter Tampering
+    - Hidden fields
+    - e-mail not validated
+    - Avoid validations on the client side
+    - Fail Open Authentication Scheme
+  - Session administration and authentication
+    - Authentication using cookies
+  - Injection Flaws
+    - SQL Injection
+    - JSON Injection
+- References
 
-## 1. Objective
+## Objective
 
 Vulnerabilities in web applications are responsible for most of the security
 violations in computer networks. Every time more often, the attacks are
@@ -46,12 +46,9 @@ avoid them. We will use the following applications for this session:
   requests and responses, review and modify them before they get to the client
   or the server.
 
-## 2. How to install
+## How to install
 
-1. Download and run the base image (Ubuntu LTS) from
-   <https://softdocencia.fib.upc.edu/software/> (user/pass: alumne/sistemes).
-
-2. Download WebScarab:
+1. Download WebScarab:
 
    ```bash
    curl -o webscarab.jar -sL \
@@ -59,14 +56,14 @@ avoid them. We will use the following applications for this session:
    java -jar webscarab.jar
    ```
 
-3. Run WebGoat in Podman:
+2. Run WebGoat in Podman:
 
    ```bash
    podman run --name webgoat --rm -p 8080:8080 \
      ghcr.io/fib-gei-si/webgoat_legacy
    ```
 
-4. Configure Firefox:
+3. Configure Firefox:
    a. Open `about:config` writing it in the address bar and set
       `network.proxy.allow_hijacking_localhost=true` to allow proxy to
       localhost and `app.update.auto=false` to disable automatic updates.
@@ -81,10 +78,10 @@ avoid them. We will use the following applications for this session:
 
       ![Firefox Manual proxy configuration with HTTP Proxy 127.0.0.1 port 8008](img/img-001.png)
 
-5. Open <http://127.0.0.1:8080/webgoat/attack> in the browser (user/pass:
+4. Open <http://127.0.0.1:8080/webgoat/attack> in the browser (user/pass:
    guest/guest).
 
-## 3. Exercises
+## Exercises
 
 The vulnerabilities that we are going to see are:
 
@@ -98,13 +95,13 @@ The vulnerabilities that we are going to see are:
   of a database associated with a web application. The origin is the incorrect
   filtering of variables used in the application code.
 
-### 3.1. Parameter Tampering
+### Parameter Tampering
 
 We will see the danger of not validating input parameters on a Web application
 or doing a poor or incorrect validation. On "Parameters tampering" we will find
 four exercises:
 
-#### 3.1.1. Hidden fields
+#### Hidden fields
 
 Access to WebGoat's lesson "Exploit Hidden Fields" in "Parameter Tampering".
 Its goal is to buy from a web page for a lower price.
@@ -133,7 +130,7 @@ steps:
 
   ![WebScarab Edit Request URLEncoded tab showing QTY, SUBMIT and Price variables](img/img-004.png)
 
-#### 3.1.2. e-mail not validated
+#### e-mail not validated
 
 Go to WebGoat lesson "Exploit unchecked mail" in "Parameter Tampering". Now the
 goal is to be able to change the e-mail address where the comments typed at the
@@ -155,7 +152,7 @@ Java" to be able to modify the e-mail address. Have you found anything?
 
   ![WebScarab Edit Request URLEncoded tab with the "to" field and the XSS script in msg](img/img-005.png)
 
-#### 3.1.3. Avoid validations on the client side
+#### Avoid validations on the client side
 
 Go to WebGoat lesson "Bypass Client Side JavaScript Validation" in "Parameter
 Tampering". The goal is to avoid validation implemented on the client side of
@@ -214,7 +211,7 @@ snippet to obtain the SHA256 from the message in red that appears when you pass
 the exercise. Otherwise use an online tool like to get the SHA256 digest by
 copying and pasting the text in red.
 
-#### 3.1.4. Fail Open Authentication Scheme
+#### Fail Open Authentication Scheme
 
 Go to WebGoat lesson "Fail Open Authentication Scheme" in "Improper Error
 Handling". Try solving the lesson bypassing the authentication check by
@@ -229,9 +226,9 @@ generating an uncaught error in the server.
 
 You are now "authenticated" as WebGoat.
 
-### 3.2. Session administration and authentication
+### Session administration and authentication
 
-#### 3.2.1. Authentication using cookies
+#### Authentication using cookies
 
 We'll see now how applications use cookies to maintain session information and
 how that information can be used to establish a session for a different user
@@ -320,9 +317,9 @@ Requests" and click on "Accept Changes".
 
 You can now see a page that is greeting user "alice".
 
-### 3.3. Injection Flaws
+### Injection Flaws
 
-#### 3.3.1. SQL Injection
+#### SQL Injection
 
 We are going to study how to insert SQL sentences inside a previously written
 query in order to manipulate the correct procedures of a given application.
@@ -363,7 +360,7 @@ the table.
 We have finally achieved to list all the values of the customer's credit cards
 stored in the database.
 
-#### 3.3.2. JSON Injection
+#### JSON Injection
 
 Go to WebGoat lesson "JSON Injection" in "AJAX Security". Its goal is to try to
 get the cheaper direct (without stops) flight between Boston (BOS) and Seattle
@@ -385,7 +382,7 @@ WebScarab.
 
 We managed to purchase the cheapest flight.
 
-## 4. References
+## References
 
 - OWASP Project: <http://www.owasp.org>
 - OWASP Project at Sourceforge: <http://sourceforge.net/projects/owasp>
