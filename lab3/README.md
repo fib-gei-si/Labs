@@ -51,7 +51,7 @@ podman stop [container name] && podman rm [container name]
 
    ```bash
    podman run -d --network openam --name proxy -p 127.0.0.1:8008:8008 \
-     -e PORT=8008 docker.io/kalaksi/tinyproxy:latest
+     -e PORT=8008 docker.io/kalaksi/tinyproxy
    ```
 
    The host cannot resolve the `siupc.cat` names and cannot reach the containers
@@ -71,7 +71,7 @@ podman stop [container name] && podman rm [container name]
 
    ```bash
    podman run -d --network openam -h idp.siupc.cat --name idp_openam \
-     ghcr.io/fib-gei-si/openidentityplatform/openam:latest
+     ghcr.io/fib-gei-si/openidentityplatform/openam
    ```
 
 2. Configure the service. Open a Web Browser to
@@ -125,7 +125,7 @@ podman stop [container name] && podman rm [container name]
 
    ```bash
    podman run -d --network openam -h sp.siupc.cat --name sp_openam \
-     ghcr.io/fib-gei-si/openidentityplatform/openam:latest
+     ghcr.io/fib-gei-si/openidentityplatform/openam
    ```
 
 2. Configure the service. Open a Web Browser to
