@@ -48,10 +48,7 @@ avoid them. We will use the following applications for this session:
 
 ## 2. How to install
 
-1. Download and run the base image (Ubuntu LTS) from
-   <https://softdocencia.fib.upc.edu/software/> (user/pass: alumne/sistemes).
-
-2. Download WebScarab:
+1. Download WebScarab:
 
    ```bash
    curl -o webscarab.jar -sL \
@@ -59,14 +56,14 @@ avoid them. We will use the following applications for this session:
    java -jar webscarab.jar
    ```
 
-3. Run WebGoat in Podman:
+2. Run WebGoat in Podman:
 
    ```bash
    podman run --name webgoat --rm -p 8080:8080 \
      ghcr.io/fib-gei-si/webgoat_legacy
    ```
 
-4. Configure Firefox:
+3. Configure Firefox:
    a. Open `about:config` writing it in the address bar and set
       `network.proxy.allow_hijacking_localhost=true` to allow proxy to
       localhost and `app.update.auto=false` to disable automatic updates.
@@ -81,7 +78,7 @@ avoid them. We will use the following applications for this session:
 
       ![Firefox Manual proxy configuration with HTTP Proxy 127.0.0.1 port 8008](img/img-001.png)
 
-5. Open <http://127.0.0.1:8080/webgoat/attack> in the browser (user/pass:
+4. Open <http://127.0.0.1:8080/webgoat/attack> in the browser (user/pass:
    guest/guest).
 
 ## 3. Exercises
