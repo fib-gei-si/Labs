@@ -275,9 +275,10 @@ podman run --rm --cap-add=net_admin,net_raw \
   tshark -i eth0 -w - > ~/capture/openam.pcap
 ```
 
-The capture goes to `~/capture/openam.pcap`. Press `Ctrl+C` in the sidecar when
-you finish, then open `~/capture/openam.pcap` in Wireshark and apply the `http`
-display filter.
+The capture goes to `~/capture/openam.pcap`. Start it before you log in and
+stop it with `Ctrl+C` after access is granted, so the file holds the LOGIN flow.
+Then open `~/capture/openam.pcap` in Wireshark and apply the `http` display
+filter.
 
 If Wireshark is not installed, print the cookies with `tshark` from the same
 image:
@@ -297,14 +298,21 @@ Browse to <http://www.siupc.cat>. It should require the authentication of a user
 from the `administrator` group (e.g., `si_user`) to grant access.
 
 Return to Wireshark to locate the OpenAM cookies at two specific points: during
-the download of the login page and when access is officially granted. Ensure you
-capture these values specifically during LOGIN, as the empty values generated at
-LOGOUT are not valid for this task.
+the download of the login page and when access is officially granted.
+
+**IMPORTANT:** Report only the cookies that LOGIN sets. At LOGOUT, OpenAM sets
+the same two cookies with empty values, and those are not valid for this task.
+Test every `Set-Cookie` line: the value after `=` must not be empty.
 
 ```text
+# LOGIN, non-empty value, keep these
 Set-Cookie: AMAuthCookie=AdeadbeefD...; Domain=www.siupc.cat
 ...
 Set-Cookie: IPlanetDirectoryPro=AdeadbeefD...; Domain=www.siupc.cat
+
+# LOGOUT, empty value, not valid
+Set-Cookie: AMAuthCookie=; Domain=www.siupc.cat
+Set-Cookie: IPlanetDirectoryPro=; Domain=www.siupc.cat
 ```
 
 To find a string within a packet, click on Edit > Find Packet (CTRL+F). Under
