@@ -246,10 +246,14 @@ menu.
 After this, we have to prepare a web server. This requires two steps:
 
 1. To create a Web Agent named `apache_agent` (password: `passw0rd`). Search
-   around the **Top Level Realm / Applications / Web Agents** menu. It needs to
-   look like:
+   around the **Top Level Realm / Applications / Web Agents** menu. Set the
+   **Server URL** to `http://sp.siupc.cat:8080/openam` and the **Agent URL** to
+   `http://www.siupc.cat:80/`. It needs to look like:
 
    ![OpenAM New Agent form for apache_agent with Server URL http://sp.siupc.cat:8080/openam and Agent URL http://www.siupc.cat:80/](img/img-008.png)
+
+   Nothing binds port 80 on the host. The proxy connects to the agent inside the
+   network, where it listens on port 80, so the Agent URL keeps port 80.
 
 2. Run an apache server with the following command:
 
@@ -275,8 +279,7 @@ The capture goes to `~/capture/openam.pcap`. Press `Ctrl+C` in the sidecar when
 you finish, then open `~/capture/openam.pcap` in Wireshark and apply the `http`
 display filter.
 
-If Wireshark is not installed and you cannot install it, print the cookies with
-`tshark` from the same image:
+If Wireshark is not installed, print the cookies with `tshark` from the same image:
 
 ```bash
 podman run --rm -v ~/capture:/capture:Z docker.io/nicolaka/netshoot \
