@@ -51,7 +51,7 @@ podman stop [container name] && podman rm [container name]
 
    ```bash
    podman run -d --network openam --name proxy -p 127.0.0.1:8008:8008 \
-     -e PORT=8008 docker.io/kalaksi/tinyproxy
+     -e PORT=8008 -e DISABLE_VIA_HEADER=1 docker.io/kalaksi/tinyproxy
    ```
 
    The host cannot resolve the `siupc.cat` names and cannot reach the containers
@@ -74,7 +74,8 @@ podman stop [container name] && podman rm [container name]
      ghcr.io/fib-gei-si/openidentityplatform/openam
    ```
 
-2. Configure the service. Open a Web Browser to
+2. Configure the service. The container needs about a minute to start. If the
+   page does not load, wait and reload. Open a Web Browser to
    <http://idp.siupc.cat:8080/openam>
 
 3. Create Default configuration. Read and accept the license.
@@ -121,14 +122,15 @@ podman stop [container name] && podman rm [container name]
 
 ### Configure Service Provider
 
-1. Start OpenAM for the Identity Provider in Podman:
+1. Start OpenAM for the Service Provider in Podman:
 
    ```bash
    podman run -d --network openam -h sp.siupc.cat --name sp_openam \
      ghcr.io/fib-gei-si/openidentityplatform/openam
    ```
 
-2. Configure the service. Open a Web Browser to
+2. Configure the service. The container needs about a minute to start. If the
+   page does not load, wait and reload. Open a Web Browser to
    <http://sp.siupc.cat:8080/openam>
 
 3. Create Default configuration. Read and accept the license.
@@ -259,7 +261,8 @@ After this, we have to prepare a web server. This requires two steps:
 
 Now, you can capture the traffic to `www.siupc.cat` from inside the network.
 Open a new terminal and run a `tcpdump` sidecar in the network namespace of the
-apache container. Leave it running:
+apache container. Rootless Podman drops `CAP_NET_RAW`, so the sidecar needs the
+`--cap-add=net_raw` flag. Leave it running:
 
 ```bash
 mkdir -p ~/capture
@@ -272,13 +275,21 @@ The capture goes to `~/capture/openam.pcap`. Press `Ctrl+C` in the sidecar when
 you finish, then open `~/capture/openam.pcap` in Wireshark and apply the `http`
 display filter.
 
+If Wireshark is not installed and you cannot install it, print the cookies with
+`tshark` from the same image:
+
+```bash
+podman run --rm -v ~/capture:/capture:Z docker.io/nicolaka/netshoot \
+  tshark -r /capture/openam.pcap -Y http.set_cookie -T fields -e http.set_cookie
+```
+
 **IMPORTANT:** To avoid messing up with the cookies, it is highly recommended to
 open the IDP configuration below in incognito mode or using a different browser.
 In case you see any HTTP 403 Forbidden error on the apache server, delete all
 cookies from your browser.
 
 Browse to <http://www.siupc.cat>. It should require the authentication of a user
-from the Administrators group (e.g., `si_user`) to grant access.
+from the `administrator` group (e.g., `si_user`) to grant access.
 
 Return to Wireshark to locate the OpenAM cookies at two specific points: during
 the download of the login page and when access is officially granted. Ensure you
