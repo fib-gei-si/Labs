@@ -47,12 +47,23 @@ podman stop [container name] && podman rm [container name]
    podman network create openam
    ```
 
-2. Prepare the environment, editing the `/etc/hosts` file, running the following
-   commands:
+2. Start a forward proxy on the network:
 
    ```bash
-   echo "127.0.0.1 www.siupc.cat" | tee -a /etc/hosts
+   podman run -d --network openam --name proxy -p 127.0.0.1:8008:8008 \
+     -e PORT=8008 docker.io/kalaksi/tinyproxy:latest
    ```
+
+   The host cannot resolve the `siupc.cat` names and cannot reach the containers
+   of a rootless network. The proxy runs inside the network, so it resolves the
+   names with Podman DNS. The browser sends every request to the proxy.
+
+3. Configure the HTTP proxy in Firefox:
+
+   a. Open `about:preferences` and type "network" in the search bar.
+   b. Open "Network Settings" and select "Manual proxy configuration".
+   c. Set "HTTP Proxy" to `127.0.0.1` and "Port" to `8008`.
+   d. Clear the "No Proxy for" field.
 
 ### Configure Identity Provider
 
@@ -60,50 +71,39 @@ podman stop [container name] && podman rm [container name]
 
    ```bash
    podman run -d --network openam -h idp.siupc.cat --name idp_openam \
-     -p 127.0.0.1:8080:8080 \
      ghcr.io/robertobarreda/openidentityplatform/openam
    ```
 
-2. Editing the `/etc/hosts` file, running the following commands:
-
-   ```bash
-   echo "127.0.0.1 idp.siupc.cat" | tee -a /etc/hosts
-   ```
-
-   Rootless Podman runs the container network in a private namespace, so the
-   host cannot reach the container IP. Publish the OpenAM port on the loopback
-   address and point the hostname at that address.
-
-3. Configure the service. Open a Web Browser to
+2. Configure the service. Open a Web Browser to
    <http://idp.siupc.cat:8080/openam>
 
-4. Create Default configuration. Read and accept the license.
+3. Create Default configuration. Read and accept the license.
 
    ![OpenAM Configuration Options page with the Create Default Configuration option circled](img/img-001.png)
 
-5. You will need to provide default user passwords during the default
+4. You will need to provide default user passwords during the default
    configuration. Both passwords need to be different and at least 8 characters
    long. For example, we can use `coliflor` for `amadmin` and `broccoli` for the
    policy agent. We will only use the first one in the lab.
 
    ![OpenAM default configuration credentials form with the amadmin and policy agent passwords](img/img-002.png)
 
-6. If all is good, you should see the message "Configuration Complete"
+5. If all is good, you should see the message "Configuration Complete"
 
    ![OpenAM Configuration Complete dialog](img/img-003.png)
 
-7. Log in to the IDP. Login: `amadmin`/`coliflor`. Enter in **Top Level Realm**
+6. Log in to the IDP. Login: `amadmin`/`coliflor`. Enter in **Top Level Realm**
    and browse around a little bit to see the huge amount of options we can use on
    this system.
 
    ![OpenAM Top Level Realm overview page](img/img-004.png)
 
-8. Go to **Top Level Realm / Subjects** (left menu) and create a new user, for
+7. Go to **Top Level Realm / Subjects** (left menu) and create a new user, for
    example: `student_idp`. Use any credentials you want, take note of the
    password (for sake of simplicity, use again `coliflor`). Go back to the
    previous menu.
 
-9. Configure the federation. To do this, first we must create a Circle of Trust
+8. Configure the federation. To do this, first we must create a Circle of Trust
    (COT). Go to: **Top Level Realm / Applications** (left menu) / **WS-Fed**
 
    - There go to **Circle of Trust** and create a new COT
@@ -111,13 +111,13 @@ podman stop [container name] && podman rm [container name]
    - You can leave the rest blank, in a real scenario we should have domains and
      select the appropriate one.
 
-10. Create a SAMLv2 provider. Head to: **Top Level Realm / Configure SAMLv2
-    Provider** (main menu)/ **Create Hosted Identity Provider**
+9. Create a SAMLv2 provider. Head to: **Top Level Realm / Configure SAMLv2
+   Provider** (main menu)/ **Create Hosted Identity Provider**
 
-    - Select the test option in metadata's Signing Key
-    - Make sure that the COT is the one you previously created (e.g: `COTIDP`)
-    - Click **Configure** on the upper right hand.
-    - Leave open the window that appears.
+   - Select the test option in metadata's Signing Key
+   - Make sure that the COT is the one you previously created (e.g: `COTIDP`)
+   - Click **Configure** on the upper right hand.
+   - Leave open the window that appears.
 
 ### Configure Service Provider
 
@@ -125,50 +125,43 @@ podman stop [container name] && podman rm [container name]
 
    ```bash
    podman run -d --network openam -h sp.siupc.cat --name sp_openam \
-     -p 127.0.0.2:8080:8080 \
      ghcr.io/robertobarreda/openidentityplatform/openam
    ```
 
-2. Editing the `/etc/hosts` file, running the following commands:
-
-   ```bash
-   echo "127.0.0.2 sp.siupc.cat" | tee -a /etc/hosts
-   ```
-
-3. Configure the service. Open a Web Browser to
+2. Configure the service. Open a Web Browser to
    <http://sp.siupc.cat:8080/openam>
 
-4. Create Default configuration. Read and accept the license.
+3. Create Default configuration. Read and accept the license.
 
-5. You will need to provide default user passwords during the default
+4. You will need to provide default user passwords during the default
    configuration. Both passwords need to be different and at least 8 characters
    long. For example, we can use `coliflor` for `amadmin` and `broccoli` for the
    policy agent. We will only use the first one in the lab.
 
-6. If all is good, you should see the message "Configuration Complete"
+5. If all is good, you should see the message "Configuration Complete"
 
-7. Log in to the SP. Login: `amadmin`/`coliflor`.
+6. Log in to the SP. Login: `amadmin`/`coliflor`.
 
-8. Go to **Top Level Realm / Subjects** (left menu) and create a new user, for
+7. Go to **Top Level Realm / Subjects** (left menu) and create a new user, for
    example: `student_sp`. Use any credentials you want, take note of the password
    (for sake of simplicity, use again `coliflor`). Go back to the previous menu
 
-9. Go to: **Top Level Realm / Applications** (left menu) / **WS-Fed**
+8. Go to: **Top Level Realm / Applications** (left menu) / **WS-Fed**
 
    - There go to **Circle of Trust** and create a new COT
    - Put some significant name, e.g., `COTSP`
    - You can leave the rest blank, in a real scenario we should have domains and
      select the appropriate one.
 
-10. Go to **Top Level Realm / Configure SAMLv2 Provider / Create Hosted Service
-    Provider**
+9. Go to **Top Level Realm / Configure SAMLv2 Provider / Create Hosted Service
+   Provider**
 
-    - Use existing COT (`COTSP`) and click configure.
-    - Click yes when asked to create a remote IDP
-    - Put the following URL on the configuration of the remote server:
-      <http://idp.siupc.cat:8080/openam/saml2/jsp/exportmetadata.jsp?entityid=http://idp.siupc.cat:8080/openam&realm=/>
+   - Use existing COT (`COTSP`) and click configure.
+   - Click yes when asked to create a remote IDP
+   - Put the following URL on the configuration of the remote server:
+     <http://idp.siupc.cat:8080/openam/saml2/jsp/exportmetadata.jsp?entityid=http://idp.siupc.cat:8080/openam&realm=/>
 
-11. If everything went well, you will see the message "Identity provider is
+10. If everything went well, you will see the message "Identity provider is
     configured."
 
 Now go back to the IDP, where we have to configure the remote SP:
@@ -256,22 +249,28 @@ After this, we have to prepare a web server. This requires two steps:
 
    ![OpenAM New Agent form for apache_agent with Server URL http://sp.siupc.cat:8080/openam and Agent URL http://www.siupc.cat:80/](img/img-008.png)
 
-2. Run an apache server with the following command. Rootless Podman cannot bind
-   port 80, so allow unprivileged low ports first:
+2. Run an apache server with the following command:
 
    ```bash
-   sysctl net.ipv4.ip_unprivileged_port_start=80
-   ```
-
-   ```bash
-   podman run -it --name apache_agent -p 80:80 -h www.siupc.cat \
+   podman run -it --name apache_agent -h www.siupc.cat \
      --network openam --shm-size 2G -e PA_PASSWORD=passw0rd \
      ghcr.io/robertobarreda/openam-web-agents/apache_agent
    ```
 
-Now, you can open Wireshark (`wireshark`), start capturing the packets of
-the `lo` interface and apply a HTTP filter. Rootless Podman publishes the Apache
-port on the loopback interface, so the traffic to `www.siupc.cat` appears there.
+Now, you can capture the traffic to `www.siupc.cat` from inside the network.
+Open a new terminal and run a `tcpdump` sidecar in the network namespace of the
+apache container. Leave it running:
+
+```bash
+mkdir -p ~/capture
+podman run --rm -it --cap-add=net_raw --network container:apache_agent \
+  -v ~/capture:/capture:Z docker.io/nicolaka/netshoot \
+  tcpdump -i eth0 -w /capture/openam.pcap
+```
+
+The capture goes to `~/capture/openam.pcap`. Press `Ctrl+C` in the sidecar when
+you finish, then open `~/capture/openam.pcap` in Wireshark and apply the `http`
+display filter.
 
 **IMPORTANT:** To avoid messing up with the cookies, it is highly recommended to
 open the IDP configuration below in incognito mode or using a different browser.
