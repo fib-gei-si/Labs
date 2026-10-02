@@ -71,7 +71,7 @@ podman stop [container name] && podman rm [container name]
 
    ```bash
    podman run -d --network openam -h idp.siupc.cat --name idp_openam \
-     ghcr.io/robertobarreda/openidentityplatform/openam
+     ghcr.io/fib-gei-si/openidentityplatform/openam:latest
    ```
 
 2. Configure the service. Open a Web Browser to
@@ -125,7 +125,7 @@ podman stop [container name] && podman rm [container name]
 
    ```bash
    podman run -d --network openam -h sp.siupc.cat --name sp_openam \
-     ghcr.io/robertobarreda/openidentityplatform/openam
+     ghcr.io/fib-gei-si/openidentityplatform/openam:latest
    ```
 
 2. Configure the service. Open a Web Browser to
@@ -254,7 +254,7 @@ After this, we have to prepare a web server. This requires two steps:
    ```bash
    podman run -it --name apache_agent -h www.siupc.cat \
      --network openam --shm-size 2G -e PA_PASSWORD=passw0rd \
-     ghcr.io/robertobarreda/openam-web-agents/apache_agent
+     ghcr.io/fib-gei-si/openam-web-agents/apache_agent
    ```
 
 Now, you can capture the traffic to `www.siupc.cat` from inside the network.
