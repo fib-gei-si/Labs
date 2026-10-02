@@ -264,26 +264,28 @@ After this, we have to prepare a web server. This requires two steps:
    ```
 
 Now, you can capture the traffic to `www.siupc.cat` from inside the network.
-Open a new terminal and run a `tcpdump` sidecar in the network namespace of the
-apache container. Rootless Podman drops `CAP_NET_RAW`, so the sidecar needs the
-`--cap-add=net_raw` flag. Leave it running:
+Open a new terminal and run a `tshark` sidecar in the network namespace of the
+apache container. Rootless Podman drops `CAP_NET_RAW` and `CAP_NET_ADMIN`, so
+the sidecar needs the `--cap-add=net_admin,net_raw` flag. Leave it running:
 
 ```bash
 mkdir -p ~/capture
-podman run --rm -it --cap-add=net_raw --network container:apache_agent \
-  -v ~/capture:/capture:Z docker.io/nicolaka/netshoot \
-  tcpdump -i eth0 -w /capture/openam.pcap
+podman run --rm --cap-add=net_admin,net_raw \
+  --network container:apache_agent docker.io/antrea/tshark \
+  tshark -i eth0 -w - > ~/capture/openam.pcap
 ```
 
 The capture goes to `~/capture/openam.pcap`. Press `Ctrl+C` in the sidecar when
 you finish, then open `~/capture/openam.pcap` in Wireshark and apply the `http`
 display filter.
 
-If Wireshark is not installed, print the cookies with `tshark` from the same image:
+If Wireshark is not installed, print the cookies with `tshark` from the same
+image:
 
 ```bash
-podman run --rm -v ~/capture:/capture:Z docker.io/nicolaka/netshoot \
-  tshark -r /capture/openam.pcap -Y http.set_cookie -T fields -e http.set_cookie
+podman run -i --rm docker.io/antrea/tshark \
+  tshark -r - -Y http.set_cookie -T fields -e http.set_cookie \
+  < ~/capture/openam.pcap
 ```
 
 **IMPORTANT:** To avoid messing up with the cookies, it is highly recommended to
