@@ -51,7 +51,7 @@ podman stop [container name] && podman rm [container name]
    commands:
 
    ```bash
-   echo "127.0.0.1 www.siupc.cat" | sudo tee -a /etc/hosts
+   echo "127.0.0.1 www.siupc.cat" | tee -a /etc/hosts
    ```
 
 ### Configure Identity Provider
@@ -67,7 +67,7 @@ podman stop [container name] && podman rm [container name]
 2. Editing the `/etc/hosts` file, running the following commands:
 
    ```bash
-   echo "127.0.0.1 idp.siupc.cat" | sudo tee -a /etc/hosts
+   echo "127.0.0.1 idp.siupc.cat" | tee -a /etc/hosts
    ```
 
    Rootless Podman runs the container network in a private namespace, so the
@@ -132,7 +132,7 @@ podman stop [container name] && podman rm [container name]
 2. Editing the `/etc/hosts` file, running the following commands:
 
    ```bash
-   echo "127.0.0.2 sp.siupc.cat" | sudo tee -a /etc/hosts
+   echo "127.0.0.2 sp.siupc.cat" | tee -a /etc/hosts
    ```
 
 3. Configure the service. Open a Web Browser to
@@ -260,7 +260,7 @@ After this, we have to prepare a web server. This requires two steps:
    port 80, so allow unprivileged low ports first:
 
    ```bash
-   sudo sysctl net.ipv4.ip_unprivileged_port_start=80
+   sysctl net.ipv4.ip_unprivileged_port_start=80
    ```
 
    ```bash
@@ -269,7 +269,7 @@ After this, we have to prepare a web server. This requires two steps:
      ghcr.io/robertobarreda/openam-web-agents/apache_agent
    ```
 
-Now, you can open Wireshark (`sudo wireshark`), start capturing the packets of
+Now, you can open Wireshark (`wireshark`), start capturing the packets of
 the `lo` interface and apply a HTTP filter. Rootless Podman publishes the Apache
 port on the loopback interface, so the traffic to `www.siupc.cat` appears there.
 
