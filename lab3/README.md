@@ -31,20 +31,20 @@ be using is `siupc.cat`.
 running on podman:
 
 ```bash
-sudo podman ps
+podman ps
 ```
 
 If there is, stop and delete it by running:
 
 ```bash
-sudo podman stop [container name] && sudo podman rm [container name]
+podman stop [container name] && podman rm [container name]
 ```
 
 1. Create the podman network that will be used by the containers to talk to each
    other:
 
    ```bash
-   sudo podman network create openam
+   podman network create openam
    ```
 
 2. Prepare the environment, editing the `/etc/hosts` file, running the following
@@ -59,17 +59,20 @@ sudo podman stop [container name] && sudo podman rm [container name]
 1. Start OpenAM for the Identity Provider in Podman:
 
    ```bash
-   sudo podman run -d --network openam -h idp.siupc.cat --name idp_openam \
+   podman run -d --network openam -h idp.siupc.cat --name idp_openam \
+     -p 127.0.0.1:8080:8080 \
      ghcr.io/robertobarreda/openidentityplatform/openam
    ```
 
 2. Editing the `/etc/hosts` file, running the following commands:
 
    ```bash
-   sudo podman inspect -f \
-     '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}} {{.Config.Hostname}}' \
-     idp_openam | sudo tee -a /etc/hosts
+   echo "127.0.0.1 idp.siupc.cat" | sudo tee -a /etc/hosts
    ```
+
+   Rootless Podman runs the container network in a private namespace, so the
+   host cannot reach the container IP. Publish the OpenAM port on the loopback
+   address and point the hostname at that address.
 
 3. Configure the service. Open a Web Browser to
    <http://idp.siupc.cat:8080/openam>
@@ -121,16 +124,15 @@ sudo podman stop [container name] && sudo podman rm [container name]
 1. Start OpenAM for the Identity Provider in Podman:
 
    ```bash
-   sudo podman run -d --network openam -h sp.siupc.cat --name sp_openam \
+   podman run -d --network openam -h sp.siupc.cat --name sp_openam \
+     -p 127.0.0.2:8080:8080 \
      ghcr.io/robertobarreda/openidentityplatform/openam
    ```
 
 2. Editing the `/etc/hosts` file, running the following commands:
 
    ```bash
-   sudo podman inspect -f \
-     '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}} {{.Config.Hostname}}' \
-     sp_openam | sudo tee -a /etc/hosts
+   echo "127.0.0.2 sp.siupc.cat" | sudo tee -a /etc/hosts
    ```
 
 3. Configure the service. Open a Web Browser to
@@ -254,37 +256,22 @@ After this, we have to prepare a web server. This requires two steps:
 
    ![OpenAM New Agent form for apache_agent with Server URL http://sp.siupc.cat:8080/openam and Agent URL http://www.siupc.cat:80/](img/img-008.png)
 
-2. Run an apache server with the following command:
+2. Run an apache server with the following command. Rootless Podman cannot bind
+   port 80, so allow unprivileged low ports first:
 
    ```bash
-   sudo podman run -it --name apache_agent -p 80:80 -h www.siupc.cat \
+   sudo sysctl net.ipv4.ip_unprivileged_port_start=80
+   ```
+
+   ```bash
+   podman run -it --name apache_agent -p 80:80 -h www.siupc.cat \
      --network openam --shm-size 2G -e PA_PASSWORD=passw0rd \
      ghcr.io/robertobarreda/openam-web-agents/apache_agent
    ```
 
 Now, you can open Wireshark (`sudo wireshark`), start capturing the packets of
-the `podman1` interface and apply a HTTP filter. To know which interface you
-should capture with run the following commands:
-
-```bash
-sudo podman network inspect openam --format '{{.NetworkInterface}}'
-```
-
-```text
-podman1
-```
-
-```bash
-ip -br a
-```
-
-```text
-lo               UNKNOWN        127.0.0.1/8 ::1/128
-enp0s3           UP             10.0.2.15/24
-fe80::44e4:a1db:76bb:174a/64
-podman0          DOWN           10.88.0.1/16
-podman1          UP             10.89.0.1/16          // <- this one
-```
+the `lo` interface and apply a HTTP filter. Rootless Podman publishes the Apache
+port on the loopback interface, so the traffic to `www.siupc.cat` appears there.
 
 **IMPORTANT:** To avoid messing up with the cookies, it is highly recommended to
 open the IDP configuration below in incognito mode or using a different browser.
