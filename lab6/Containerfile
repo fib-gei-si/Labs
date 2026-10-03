@@ -1,0 +1,16 @@
+FROM docker.io/library/debian:stable-slim
+
+# Autopsy 2.24 is a Perl CGI front end for The Sleuth Kit.
+# Modern Perl rejects the inherited PATH at autopsy line 307, before the
+# script sets a clean PATH at line 332. Set a constant PATH after the shebang.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends autopsy sleuthkit \
+ && rm -rf /var/lib/apt/lists/* \
+ && sed -i '/^#!/a $ENV{PATH} = q(/bin:/usr/bin:/usr/local/bin);' /usr/bin/autopsy
+
+RUN mkdir -p /evidence /var/lib/autopsy
+WORKDIR /evidence
+EXPOSE 9999
+
+ENTRYPOINT ["autopsy"]
+CMD ["-p", "9999", "127.0.0.1"]
