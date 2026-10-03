@@ -27,7 +27,8 @@ evidence is involved.
 
 ## Requisites
 
-1. Download the `image.zip` file from Atenea and unzip it.
+1. Download the `image.zip` file from Atenea and unzip it into
+   `$HOME/si-lab6`.
 2. Run the Autopsy container. See [Running Autopsy in Podman](#running-autopsy-in-podman).
 3. Open the Autopsy browser at <http://localhost:9999/autopsy>.
 
@@ -185,7 +186,7 @@ configurations:
 1. Open a new case: it is necessary to provide a case and investigators names.
 2. Add a new host: it is necessary to provide a host name.
 3. Add an image: it is necessary to provide the complete location of the
-   recovered floppy disk image (`/evidence/<name>` inside the container). The
+   recovered floppy disk image (`/evidence/image` inside the container). The
    importation has to be done as "partition" and "Symlink". You can ignore the
    MD5 checking.
 
