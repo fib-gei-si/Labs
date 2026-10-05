@@ -2,26 +2,26 @@
 
 ## Contents
 
-- Objective
-- Setting up Podman and the Apache Server container
-- Scheme
-- Creating the certification hierarchy
-  - Generating the certificate request for the CA
-  - Issue the signature for the CA certificate
-  - Generating the certificate request for the server
-  - Issue the signature of the server certificate
-  - Generating a certificate for the user
-  - Issue the signature of the user certificate
-  - Export the user certificate and its private key
-  - Install the certificates in the browser
-- Apache Server Configuration
-  - Start/Stop/Restart the Apache container
-  - Apache configuration to authenticate the server
-  - Configure a VirtualHost to use SSL
-  - Enable the new website
-  - Client authentication using a digital certificate
-  - Validate with curl without a browser
-- Deliverables
+- [Objective](#objective)
+- [Setting up Podman and the Apache Server container](#setting-up-podman-and-the-apache-container)
+- [Scheme](#scheme)
+- [Creating the certification hierarchy](#creating-the-certification-hierarchy)
+  - [Generating the certificate request for the CA](#generating-the-certificate-request-for-the-ca)
+  - [Issue the signature for the CA certificate](#issue-the-signature-for-the-ca-certificate)
+  - [Generating the certificate request for the server](#generating-the-certificate-request-for-the-server)
+  - [Issue the signature of the server certificate](#issue-the-signature-of-the-server-certificate)
+  - [Generating a certificate for the user](#generating-a-certificate-for-the-user)
+  - [Issue the signature of the user certificate](#issue-the-signature-of-the-user-certificate)
+  - [Export the user certificate and its private key](#export-the-user-certificate-and-its-private-key)
+  - [Install the certificates in the browser](#install-the-certificates-in-the-browser)
+- [Apache Server Configuration](#apache-configuration)
+  - [Start/Stop/Restart the Apache container](#startstoprestart-the-apache-container)
+  - [Apache configuration to authenticate the server](#apache-configuration-to-authenticate-the-server)
+  - [Configure a VirtualHost to use SSL](#configure-a-virtualhost-to-use-ssl)
+  - [Enable the new website](#enable-the-new-website)
+  - [Client authentication using a digital certificate](#client-authentication-using-a-digital-certificate)
+  - [Validate with curl without a browser](#validate-with-curl-without-a-browser)
+- [Deliverables](#deliverables)
 
 ## Objective
 

@@ -2,20 +2,20 @@
 
 ## Contents
 
-- Objective
-- How to install
-- Exercises
-  - Parameter Tampering
-    - Hidden fields
-    - e-mail not validated
-    - Avoid validations on the client side
-    - Fail Open Authentication Scheme
-  - Session administration and authentication
-    - Authentication using cookies
-  - Injection Flaws
-    - SQL Injection
-    - JSON Injection
-- References
+- [Objective](#objective)
+- [How to install](#how-to-install)
+- [Exercises](#exercises)
+  - [Parameter Tampering](#parameter-tampering)
+    - [Hidden fields](#hidden-fields)
+    - [e-mail not validated](#e-mail-not-validated)
+    - [Avoid validations on the client side](#avoid-validations-on-the-client-side)
+    - [Fail Open Authentication Scheme](#fail-open-authentication-scheme)
+  - [Session administration and authentication](#session-administration-and-authentication)
+    - [Authentication using cookies](#authentication-using-cookies)
+  - [Injection Flaws](#injection-flaws)
+    - [SQL Injection](#sql-injection)
+    - [JSON Injection](#json-injection)
+- [References](#references)
 
 ## Objective
 
