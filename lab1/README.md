@@ -498,10 +498,10 @@ Open `$HOME/si/apache/lab-ssl.conf` and make the following changes.
     DocumentRoot "/si/www-ssl"
     ```
 
-3. Set the TLS versions. Find the `SSLProtocol` line and replace it:
+3. Force TLS 1.2. Find the `SSLProtocol` line and replace it:
 
     ```apache
-    SSLProtocol -all +TLSv1.2 +TLSv1.3
+    SSLProtocol -all +TLSv1.2
     ```
 
 4. Configure the certificate variables to point to the server certificate, the
@@ -564,35 +564,22 @@ mkdir -p $HOME/si/www-ssl/private
 printf '<html><body><h1>SSI</h1><hr><h2>Private: Server with SSL client auth active</h2></body></html>\n' > $HOME/si/www-ssl/private/index.html
 ```
 
-Open `$HOME/si/apache/lab-ssl.conf`. Add the following line after `SSLEngine on`:
-
-```apache
-SSLVerifyClient optional
-```
-
-This tells Apache to ask the browser for a client certificate when the TLS
-connection starts. Apache sends the names of the trusted CAs, so the browser can
-select the correct certificate. The server does not require the certificate yet.
-
-Add a new `<Directory>` block at the end of the file, within the <VirtualHost> block:
+Open `$HOME/si/apache/lab-ssl.conf`. Add a new `<Directory>` block at the end of
+the file, within the <VirtualHost> block:
 
 ```apache
 <Directory "/si/www-ssl/private">
     AllowOverride All
     Require all granted
-    SSLRequire %{SSL_CLIENT_VERIFY} eq "SUCCESS"
+    SSLVerifyClient require
+    SSLVerifyDepth 1
 </Directory>
 ```
 
-The `SSLRequire` directive accepts the request only when the client certificate
-is valid. The server requested the certificate during the handshake, so no new
-TLS handshake is necessary.
-
-Warning: do not use `SSLVerifyClient require` inside a `<Directory>` block. That
-form forces a TLS renegotiation after the request. Browsers reject the
-renegotiation, and Firefox shows `ERR_BAD_SSL_CLIENT_AUTH_CERT`. The server log
-shows `AH02261: Re-negotiation handshake failed` and `peer did not return a
-certificate`.
+The `SSLVerifyClient require` directive makes Apache request a client
+certificate when a request reaches `/private`.
+`SSLVerifyDepth 1` allows one certificate between the client certificate and the CA.
+The public page does not request a certificate.
 
 Restart the container:
 
@@ -601,14 +588,11 @@ podman restart apache-ssl
 ```
 
 Open `https://localhost:8443/private` in Firefox. Firefox asks for a client
-certificate because the virtual host uses `SSLVerifyClient optional`. Select the
-user certificate. The server shows the private webpage. Open
-`https://localhost:8443/` and cancel the certificate request. The server shows
-the public page.
+certificate because the `/private` directory uses `SSLVerifyClient require`.
+Select the user certificate. The server shows the private webpage. Open
+`https://localhost:8443/`. The public page loads without a certificate request.
 
 ### Validate with curl without a browser
-
-> Aquesta part no funciona torna el error `error adding trust anchors from file: ./ssl.crt/ca_cert.crt`
 
 If the lab PC blocks the Firefox certificate import, use `curl`. It checks the
 same TLS behavior and needs no browser profile and no admin rights. Firefox
@@ -619,19 +603,23 @@ Check the server certificate. The CA file lets `curl` trust the server:
 ```bash
 curl --cacert $HOME/si/ssl.crt/ca_cert.crt https://localhost:8443/
 ```
-> Aquesta comanda em falla: `curl --cacert ./ssl.crt/ca_cert.crt https://localhost:8443/` Sembla que CURL no pot accedir a la meva ruta: `/dades/marc.catrisse/labsi/Lab1/solution`. SI que puc fer obrir el fitxer amb el cat via terminal, però el curl no pot... Raro
 
 Check the client certificate. Pass the p12 file and its password after a colon.
 The `-i` option shows the response headers and the page. The private page returns
-`200` with the certificate and `403` without it:
+`200` with the certificate:
 
 ```bash
 # With the client certificate: 200 and the private page
 curl -i --cacert $HOME/si/ssl.crt/ca_cert.crt \
   --cert $HOME/si/client_cert.p12:repollo --cert-type P12 \
   https://localhost:8443/private/
+```
 
-# Without a certificate: 403 Forbidden
+Without a certificate the renegotiation fails and the TLS connection closes.
+`curl` exits with code `56` and an SSL alert, not a `403`:
+
+```bash
+# Without a certificate: TLS handshake failure, curl exit code 56
 curl -i --cacert $HOME/si/ssl.crt/ca_cert.crt \
   https://localhost:8443/private/
 ```
