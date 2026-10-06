@@ -211,8 +211,30 @@ incorrect information to the server.
 
 Open the browser console (right click → Inspect → Console) and paste the
 snippet to obtain the SHA256 from the message in red that appears when you pass
-the exercise. Otherwise use an online tool like to get the SHA256 digest by
+the exercise. Otherwise use an online tool like
+<https://emn178.github.io/online-tools/sha256.html> to get the SHA256 digest by
 copying and pasting the text in red.
+
+```javascript
+// You need to type in console `allow pasting` and hit enter.
+// This is one time thing and will enable the pasting functionality.
+
+// If this code doesn't work on your browser, take the output from:
+// document.querySelector("#message.info").innerText.trim()
+// and use an online tool like https://emn178.github.io/online-tools/sha256.html
+// to get the SHA256 digest
+
+async function sha256(rawData) {
+  const data = typeof rawData === 'object' ? JSON.stringify(rawData) : String(rawData);
+
+  const msgBuffer = new TextEncoder().encode(data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+sha256(document.querySelector("#message.info").innerText.trim()).then((hash) => { console.log(hash); });
+```
 
 ### Improper Error Handling
 
