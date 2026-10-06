@@ -129,11 +129,16 @@ podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 openssl
   volume on SELinux hosts. Podman ignores it on hosts without SELinux.
 - `-w /si` sets the working directory inside the container.
 
-Create an alias to run openssl
+Create an alias to run openssl in the container. The alias shadows any system
+`openssl`, so the lab always uses the OpenSSL 3.x binary in the image. An alias
+takes precedence over a binary with the same name in an interactive bash shell.
 
 ```bash
-alias popenssl 'podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 openssl'
+alias openssl='podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 openssl'
 ```
+
+The alias sets the working directory to `/si`, so the relative paths in the
+commands below match the files in `$HOME/si`.
 
 ## Scheme
 
@@ -196,7 +201,7 @@ the CA extensions.
 Generate the key pair and the request:
 
 ```bash
-popenssl req -new -extensions v3_ca -config ca_cert.cnf \
+openssl req -new -extensions v3_ca -config ca_cert.cnf \
   -keyout ssl.key/ca_key.pem -out ssl.csr/ca_cert-req.pem
 ```
 
@@ -213,7 +218,7 @@ This marks the attribute as empty.
 Check the request:
 
 ```bash
-popenssl asn1parse -i -dump -in ssl.csr/ca_cert-req.pem \
+openssl asn1parse -i -dump -in ssl.csr/ca_cert-req.pem \
   -out ssl.csr/ca_cert-req.txt
 ```
 
@@ -224,7 +229,7 @@ Review the text file and find your information and the public key.
 Generate the self-signed certificate of the CA:
 
 ```bash
-popenssl x509 -req -in ssl.csr/ca_cert-req.pem -signkey ssl.key/ca_key.pem \
+openssl x509 -req -in ssl.csr/ca_cert-req.pem -signkey ssl.key/ca_key.pem \
   -days 365 -out ssl.crt/ca_cert.crt -extfile ca_cert.cnf -extensions v3_ca
 ```
 
@@ -238,7 +243,7 @@ Parse the new certificate and find the fields with your information and the
 public key:
 
 ```bash
-popenssl asn1parse -i -dump -in ssl.crt/ca_cert.crt -out ssl.crt/ca_cert.txt
+openssl asn1parse -i -dump -in ssl.crt/ca_cert.crt -out ssl.crt/ca_cert.txt
 ```
 
 The CA is ready. Next, create the server certificate.
@@ -277,7 +282,7 @@ DNS.1 = localhost
 Issue the certificate request for the server:
 
 ```bash
-popenssl req -new -nodes -extensions req_ext -config server_cert.cnf \
+openssl req -new -nodes -extensions req_ext -config server_cert.cnf \
   -keyout ssl.key/server_key.pem -out ssl.csr/server_cert-req.pem
 ```
 
@@ -298,7 +303,7 @@ Warnings:
 Check that the request is well-formed:
 
 ```bash
-popenssl req -in ssl.csr/server_cert-req.pem -text -verify
+openssl req -in ssl.csr/server_cert-req.pem -text -verify
 ```
 
 ### Issue the signature of the server certificate
@@ -307,7 +312,7 @@ The CA signs the server certificate for one year. The command asks for the CA
 passphrase:
 
 ```bash
-popenssl x509 -req -in ssl.csr/server_cert-req.pem \
+openssl x509 -req -in ssl.csr/server_cert-req.pem \
   -out ssl.crt/server_cert.crt -days 365 \
   -CA ssl.crt/ca_cert.crt -CAkey ssl.key/ca_key.pem -CAcreateserial \
   -extfile server_cert.cnf -extensions req_ext
@@ -319,20 +324,20 @@ them at signing time with `-extfile` and `-extensions`.
 Parse the new certificate to check that the information is correct:
 
 ```bash
-popenssl asn1parse -i -dump -in ssl.crt/server_cert.crt \
+openssl asn1parse -i -dump -in ssl.crt/server_cert.crt \
   -out ssl.crt/server_cert.txt
 ```
 
 Verify that the certificate is well-formed:
 
 ```bash
-popenssl x509 -in ssl.crt/server_cert.crt -text
+openssl x509 -in ssl.crt/server_cert.crt -text
 ```
 
 Verify that the server certificate holds your settings:
 
 ```bash
-popenssl x509 -in ssl.crt/server_cert.crt -text -noout | grep -A1 Subject
+openssl x509 -in ssl.crt/server_cert.crt -text -noout | grep -A1 Subject
 ```
 
 The output shows the subject and the SAN values:
@@ -369,7 +374,7 @@ The `v3_client` section marks the certificate as a client certificate.
 Issue the certificate request:
 
 ```bash
-popenssl req -new -config client_cert.cnf -extensions v3_client \
+openssl req -new -config client_cert.cnf -extensions v3_client \
   -keyout ssl.key/client_key.pem -out ssl.csr/client_cert-req.pem
 ```
 
@@ -380,7 +385,7 @@ Email Address `<student email>`.
 Check that the request is well-formed:
 
 ```bash
-popenssl req -in ssl.csr/client_cert-req.pem -text -verify
+openssl req -in ssl.csr/client_cert-req.pem -text -verify
 ```
 
 ### Issue the signature of the user certificate
@@ -390,7 +395,7 @@ to a certificate, so add them during the signature with `-extfile` and
 `-extensions`:
 
 ```bash
-  popenssl x509 -req -in ssl.csr/client_cert-req.pem \
+  openssl x509 -req -in ssl.csr/client_cert-req.pem \
     -out ssl.crt/client_cert.crt -days 365 \
     -CA ssl.crt/ca_cert.crt -CAkey ssl.key/ca_key.pem -CAcreateserial \
     -extfile client_cert.cnf -extensions v3_client
@@ -399,7 +404,7 @@ to a certificate, so add them during the signature with `-extfile` and
 Check that the certificate contains the client authentication extension:
 
 ```bash
-popenssl x509 -in ssl.crt/client_cert.crt -text -noout \
+openssl x509 -in ssl.crt/client_cert.crt -text -noout \
 | grep -A1 'Extended Key Usage'
 ```
 
@@ -411,7 +416,7 @@ Export the user certificate and key in one file. The PKCS#12 file is protected
 by a password:
 
 ```bash
-popenssl pkcs12 -export -in ssl.crt/client_cert.crt \
+openssl pkcs12 -export -in ssl.crt/client_cert.crt \
   -inkey ssl.key/client_key.pem -out client_cert.p12 -name "clientCert"
 ```
 
