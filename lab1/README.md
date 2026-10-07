@@ -597,42 +597,6 @@ certificate because the `/private` directory uses `SSLVerifyClient require`.
 Select the user certificate. The server shows the private webpage. Open
 `https://localhost:8443/`. The public page loads without a certificate request.
 
-### Validate with curl without a browser
-
-If the lab PC blocks the Firefox certificate import, use `curl`. It checks the
-same TLS behavior and needs no browser profile and no admin rights. Firefox
-remains the main path.
-
-Check the server certificate. The CA file lets `curl` trust the server:
-
-```bash
-curl --cacert $HOME/si/ssl.crt/ca_cert.crt https://localhost:8443/
-```
-
-Check the client certificate. Pass the p12 file and its password after a colon.
-The `-i` option shows the response headers and the page. The private page returns
-`200` with the certificate:
-
-```bash
-# With the client certificate: 200 and the private page
-curl -i --cacert $HOME/si/ssl.crt/ca_cert.crt \
-  --cert $HOME/si/client_cert.p12:repollo --cert-type P12 \
-  https://localhost:8443/private/
-```
-
-Without a certificate the renegotiation fails and the TLS connection closes.
-`curl` exits with code `56` and an SSL alert, not a `403`:
-
-```bash
-# Without a certificate: TLS handshake failure, curl exit code 56
-curl -i --cacert $HOME/si/ssl.crt/ca_cert.crt \
-  https://localhost:8443/private/
-```
-
-If the password contains special characters, omit `:repollo`. `curl` prompts for
-the password. The browser shows the certificate prompt and the padlock, and
-`curl` does not.
-
 ## Deliverables
 
 You have 10 days to complete the delivery. Submit one file `si-lab1.tar.gz` in
