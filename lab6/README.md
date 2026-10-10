@@ -2,20 +2,20 @@
 
 ## Contents
 
-- Objectives
-- Requisites
-- Lab description
-- Goals
-- Autopsy
-  - Running Autopsy in Podman
-  - Evidence Search Techniques
-  - Case Management
-  - Case Creation in a Nutshell
-  - Useful Autopsy Views
-- Some hints for the case
-- Deliverables
-- References
-- Joe Jacobs police report
+- [Objectives](#objectives)
+- [Requisites](#requisites)
+- [Lab description](#lab-description)
+- [Goals](#goals)
+- [Autopsy](#autopsy)
+  - [Running Autopsy in Podman](#running-autopsy-in-podman)
+  - [Evidence Search Techniques](#evidence-search-techniques)
+  - [Case Management](#case-management)
+  - [Case Creation in a Nutshell](#case-creation-in-a-nutshell)
+  - [Useful Autopsy Views](#useful-autopsy-views)
+- [Some hints for the case](#some-hints-for-the-case)
+- [Deliverables](#deliverables)
+- [References](#references)
+- [Joe Jacobs police report](#joe-jacobs-police-report)
 
 ## Objectives
 
