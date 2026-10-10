@@ -2,13 +2,13 @@
 
 ## Contents
 
-- Objectives
-- Laboratory environment
-- The malware: a trojan copy of a Windows Live Messenger
-- Behavioural analysis
-- Network traffic analysis
-- Code analysis
-- Deliverables
+- [Objectives](#objectives)
+- [Laboratory environment](#laboratory-environment)
+- [The malware: a trojan copy of a Windows Live Messenger](#the-malware-a-trojan-copy-of-a-windows-live-messenger)
+- [Behavioural analysis](#behavioural-analysis)
+- [Network traffic analysis](#network-traffic-analysis)
+- [Code analysis](#code-analysis)
+- [Deliverables](#deliverables)
 
 ## Objectives
 
