@@ -2,13 +2,14 @@
 
 ## Contents
 
-- Objective
-- How to install
-  - Configure Identity Provider
-  - Configure Service Provider
-  - Link the accounts
-- Exercise
-- References
+- [Objective](#objective)
+- [How to install](#how-to-install)
+  - [Configure Identity Provider](#configure-identity-provider)
+  - [Configure Service Provider](#configure-service-provider)
+  - [Link the accounts](#link-the-accounts)
+- [Exercise](#exercise)
+- [Deliverables](#deliverables)
+- [References](#references)
 
 ## Objective
 
@@ -322,6 +323,27 @@ default is "Packet list" but that will only find a string that appears in the
 Info column of the Packet List pane, which is the one-line-per-packet summary
 view. There is a lot more information in most packets than what appears in the
 packet list Info column, so try "Packet details".
+
+## Deliverables
+
+Submit the following screenshots in Atenea. Use the given file name for each
+one.
+
+- `student_idp.png`: creation of the IdP user with your data.
+- `student_sp.png`: creation of the SP user with your data.
+- `sso_succeeded.png`: the "Single Sign-on succeeded" result from
+  [Link the accounts](#link-the-accounts).
+- `signin_openam.png`: the login page of `www.siupc.cat`, together with the
+  terminal that runs the Apache server container and a text file with the
+  student name and group.
+- `signin_works.png`: the same as above after you enter the `si_user`
+  credentials ("It works!").
+- `wireshark1.png`: the `AMAuthCookie` cookie, which tracks the users in the
+  authentication process.
+- `wireshark2.png`: the `iPlanetDirectoryPro` cookie, the AM session cookie
+  after the user authenticates successfully.
+
+Wireshark must capture the whole HTTP message exchange.
 
 ## References
 
