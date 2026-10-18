@@ -60,10 +60,10 @@ podman stop [container name] && podman rm [container name]
 
 3. Configure the HTTP proxy in Firefox:
 
-   a. Open `about:preferences` and type "network" in the search bar.
-   b. Open "Network Settings" and select "Manual proxy configuration".
-   c. Set "HTTP Proxy" to `127.0.0.1` and "Port" to `8008`.
-   d. Clear the "No Proxy for" field.
+   1. Open `about:preferences` and type "network" in the search bar.
+   2. Open "Network Settings" and select "Manual proxy configuration".
+   3. Set "HTTP Proxy" to `127.0.0.1` and "Port" to `8008`.
+   4. Clear the "No Proxy for" field.
 
 ### Configure Identity Provider
 
