@@ -1,4 +1,4 @@
-# Lab 5: Shellcodes and Buffer Overflows
+# Lab 4: Shellcodes and Buffer Overflows
 
 ## Contents
 
@@ -57,11 +57,11 @@ WORKDIR /work
 Build the image and start a shell:
 
 ```bash
-podman build -t lab5-toolchain .
+podman build -t shellcode-toolchain .
 podman run --rm -it \
   --security-opt seccomp=unconfined \
   -v "$PWD":/work:Z -w /work \
-  localhost/lab5-toolchain
+  localhost/shellcode-toolchain
 ```
 
 The container runs as root internally. Those privileges stay unprivileged on the
