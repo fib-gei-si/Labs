@@ -2,20 +2,23 @@
 
 ## Contents
 
-- Objective
-- How to install
-- Exercises
-  - Parameter Tampering
-    - Hidden fields
-    - e-mail not validated
-    - Avoid validations on the client side
-    - Fail Open Authentication Scheme
-  - Session administration and authentication
-    - Authentication using cookies
-  - Injection Flaws
-    - SQL Injection
-    - JSON Injection
-- References
+- [Objective](#objective)
+- [How to install](#how-to-install)
+- [Exercises](#exercises)
+  - [Parameter Tampering](#parameter-tampering)
+    - [Hidden fields](#hidden-fields)
+    - [e-mail not validated](#e-mail-not-validated)
+    - [Avoid validations on the client side](#avoid-validations-on-the-client-side)
+  - [Improper Error Handling](#improper-error-handling)
+    - [Fail Open Authentication Scheme](#fail-open-authentication-scheme)
+  - [Session administration and authentication](#session-administration-and-authentication)
+    - [Authentication using cookies](#authentication-using-cookies)
+  - [Injection Flaws](#injection-flaws)
+    - [SQL Injection](#sql-injection)
+  - [AJAX Security](#ajax-security)
+    - [JSON Injection](#json-injection)
+- [Deliverables](#deliverables)
+- [References](#references)
 
 ## Objective
 
@@ -208,8 +211,32 @@ incorrect information to the server.
 
 Open the browser console (right click → Inspect → Console) and paste the
 snippet to obtain the SHA256 from the message in red that appears when you pass
-the exercise. Otherwise use an online tool like to get the SHA256 digest by
+the exercise. Otherwise use an online tool like
+<https://emn178.github.io/online-tools/sha256.html> to get the SHA256 digest by
 copying and pasting the text in red.
+
+```javascript
+// You need to type in console `allow pasting` and hit enter.
+// This is one time thing and will enable the pasting functionality.
+
+// If this code doesn't work on your browser, take the output from:
+// document.querySelector("#message.info").innerText.trim()
+// and use an online tool like https://emn178.github.io/online-tools/sha256.html
+// to get the SHA256 digest
+
+async function sha256(rawData) {
+  const data = typeof rawData === 'object' ? JSON.stringify(rawData) : String(rawData);
+
+  const msgBuffer = new TextEncoder().encode(data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+sha256(document.querySelector("#message.info").innerText.trim()).then((hash) => { console.log(hash); });
+```
+
+### Improper Error Handling
 
 #### Fail Open Authentication Scheme
 
@@ -360,6 +387,8 @@ the table.
 We have finally achieved to list all the values of the customer's credit cards
 stored in the database.
 
+### AJAX Security
+
 #### JSON Injection
 
 Go to WebGoat lesson "JSON Injection" in "AJAX Security". Its goal is to try to
@@ -381,6 +410,19 @@ WebScarab.
   ![WebGoat JSON Injection lesson with the direct flight at $60](img/img-016.png)
 
 We managed to purchase the cheapest flight.
+
+## Deliverables
+
+Submit the file `si-lab2.tar` in Atenea. The archive holds one image per form
+question, named `P1.jpg` to `P10.jpg`.
+
+Each image is a screenshot of the virtual machine that shows:
+
+- The full virtual machine window and the virtual image name.
+- The current date the system reports (real local time).
+- The browser or WebGoat application with your answer to the question. Include
+  the steps that solved the exercise. Do not submit only the final screen that
+  reports the exercise passed.
 
 ## References
 

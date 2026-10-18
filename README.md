@@ -17,4 +17,4 @@ attack.
 3. [Federated authentication and authorization](lab3/README.md)
 4.
 5. [Shellcodes and Buffer Overflows](lab5/README.md)
-6.
+6. [Forensic analysis](lab6/README.md)

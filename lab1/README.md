@@ -2,26 +2,26 @@
 
 ## Contents
 
-- Objective
-- Setting up Podman and the Apache Server container
-- Scheme
-- Creating the certification hierarchy
-  - Generating the certificate request for the CA
-  - Issue the signature for the CA certificate
-  - Generating the certificate request for the server
-  - Issue the signature of the server certificate
-  - Generating a certificate for the user
-  - Issue the signature of the user certificate
-  - Export the user certificate and its private key
-  - Install the certificates in the browser
-- Apache Server Configuration
-  - Start/Stop/Restart the Apache container
-  - Apache configuration to authenticate the server
-  - Configure a VirtualHost to use SSL
-  - Enable the new website
-  - Client authentication using a digital certificate
-  - Validate with curl without a browser
-- Deliverables
+- [Objective](#objective)
+- [Setting up Podman and the Apache Server container](#setting-up-podman-and-the-apache-container)
+- [Scheme](#scheme)
+- [Creating the certification hierarchy](#creating-the-certification-hierarchy)
+  - [Generating the certificate request for the CA](#generating-the-certificate-request-for-the-ca)
+  - [Issue the signature for the CA certificate](#issue-the-signature-for-the-ca-certificate)
+  - [Generating the certificate request for the server](#generating-the-certificate-request-for-the-server)
+  - [Issue the signature of the server certificate](#issue-the-signature-of-the-server-certificate)
+  - [Generating a certificate for the user](#generating-a-certificate-for-the-user)
+  - [Issue the signature of the user certificate](#issue-the-signature-of-the-user-certificate)
+  - [Export the user certificate and its private key](#export-the-user-certificate-and-its-private-key)
+  - [Install the certificates in the browser](#install-the-certificates-in-the-browser)
+- [Apache Server Configuration](#apache-configuration)
+  - [Start/Stop/Restart the Apache container](#startstoprestart-the-apache-container)
+  - [Apache configuration to authenticate the server](#apache-configuration-to-authenticate-the-server)
+  - [Configure a VirtualHost to use SSL](#configure-a-virtualhost-to-use-ssl)
+  - [Enable the new website](#enable-the-new-website)
+  - [Client authentication using a digital certificate](#client-authentication-using-a-digital-certificate)
+  - [Validate with curl without a browser](#validate-with-curl-without-a-browser)
+- [Deliverables](#deliverables)
 
 ## Objective
 
@@ -129,11 +129,16 @@ podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 openssl
   volume on SELinux hosts. Podman ignores it on hosts without SELinux.
 - `-w /si` sets the working directory inside the container.
 
-Create an alias to run openssl
+Create an alias to run openssl in the container. The alias shadows any system
+`openssl`, so the lab always uses the OpenSSL 3.x binary in the image. An alias
+takes precedence over a binary with the same name in an interactive bash shell.
 
 ```bash
-alias popenssl 'podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 openssl'
+alias openssl='podman run --rm -it -v $HOME/si:/si:Z -w /si docker.io/library/httpd:2.4 openssl'
 ```
+
+The alias sets the working directory to `/si`, so the relative paths in the
+commands below match the files in `$HOME/si`.
 
 ## Scheme
 
@@ -196,7 +201,7 @@ the CA extensions.
 Generate the key pair and the request:
 
 ```bash
-popenssl req -new -extensions v3_ca -config ca_cert.cnf \
+openssl req -new -extensions v3_ca -config ca_cert.cnf \
   -keyout ssl.key/ca_key.pem -out ssl.csr/ca_cert-req.pem
 ```
 
@@ -213,7 +218,7 @@ This marks the attribute as empty.
 Check the request:
 
 ```bash
-popenssl asn1parse -i -dump -in ssl.csr/ca_cert-req.pem \
+openssl asn1parse -i -dump -in ssl.csr/ca_cert-req.pem \
   -out ssl.csr/ca_cert-req.txt
 ```
 
@@ -224,7 +229,7 @@ Review the text file and find your information and the public key.
 Generate the self-signed certificate of the CA:
 
 ```bash
-popenssl x509 -req -in ssl.csr/ca_cert-req.pem -signkey ssl.key/ca_key.pem \
+openssl x509 -req -in ssl.csr/ca_cert-req.pem -signkey ssl.key/ca_key.pem \
   -days 365 -out ssl.crt/ca_cert.crt -extfile ca_cert.cnf -extensions v3_ca
 ```
 
@@ -238,7 +243,7 @@ Parse the new certificate and find the fields with your information and the
 public key:
 
 ```bash
-popenssl asn1parse -i -dump -in ssl.crt/ca_cert.crt -out ssl.crt/ca_cert.txt
+openssl asn1parse -i -dump -in ssl.crt/ca_cert.crt -out ssl.crt/ca_cert.txt
 ```
 
 The CA is ready. Next, create the server certificate.
@@ -277,7 +282,7 @@ DNS.1 = localhost
 Issue the certificate request for the server:
 
 ```bash
-popenssl req -new -nodes -extensions req_ext -config server_cert.cnf \
+openssl req -new -nodes -extensions req_ext -config server_cert.cnf \
   -keyout ssl.key/server_key.pem -out ssl.csr/server_cert-req.pem
 ```
 
@@ -298,7 +303,7 @@ Warnings:
 Check that the request is well-formed:
 
 ```bash
-popenssl req -in ssl.csr/server_cert-req.pem -text -verify
+openssl req -in ssl.csr/server_cert-req.pem -text -verify
 ```
 
 ### Issue the signature of the server certificate
@@ -307,7 +312,7 @@ The CA signs the server certificate for one year. The command asks for the CA
 passphrase:
 
 ```bash
-popenssl x509 -req -in ssl.csr/server_cert-req.pem \
+openssl x509 -req -in ssl.csr/server_cert-req.pem \
   -out ssl.crt/server_cert.crt -days 365 \
   -CA ssl.crt/ca_cert.crt -CAkey ssl.key/ca_key.pem -CAcreateserial \
   -extfile server_cert.cnf -extensions req_ext
@@ -319,20 +324,20 @@ them at signing time with `-extfile` and `-extensions`.
 Parse the new certificate to check that the information is correct:
 
 ```bash
-popenssl asn1parse -i -dump -in ssl.crt/server_cert.crt \
+openssl asn1parse -i -dump -in ssl.crt/server_cert.crt \
   -out ssl.crt/server_cert.txt
 ```
 
 Verify that the certificate is well-formed:
 
 ```bash
-popenssl x509 -in ssl.crt/server_cert.crt -text
+openssl x509 -in ssl.crt/server_cert.crt -text
 ```
 
 Verify that the server certificate holds your settings:
 
 ```bash
-popenssl x509 -in ssl.crt/server_cert.crt -text -noout | grep -A1 Subject
+openssl x509 -in ssl.crt/server_cert.crt -text -noout | grep -A1 Subject
 ```
 
 The output shows the subject and the SAN values:
@@ -369,7 +374,7 @@ The `v3_client` section marks the certificate as a client certificate.
 Issue the certificate request:
 
 ```bash
-popenssl req -new -config client_cert.cnf -extensions v3_client \
+openssl req -new -config client_cert.cnf -extensions v3_client \
   -keyout ssl.key/client_key.pem -out ssl.csr/client_cert-req.pem
 ```
 
@@ -380,7 +385,7 @@ Email Address `<student email>`.
 Check that the request is well-formed:
 
 ```bash
-popenssl req -in ssl.csr/client_cert-req.pem -text -verify
+openssl req -in ssl.csr/client_cert-req.pem -text -verify
 ```
 
 ### Issue the signature of the user certificate
@@ -390,7 +395,7 @@ to a certificate, so add them during the signature with `-extfile` and
 `-extensions`:
 
 ```bash
-  popenssl x509 -req -in ssl.csr/client_cert-req.pem \
+  openssl x509 -req -in ssl.csr/client_cert-req.pem \
     -out ssl.crt/client_cert.crt -days 365 \
     -CA ssl.crt/ca_cert.crt -CAkey ssl.key/ca_key.pem -CAcreateserial \
     -extfile client_cert.cnf -extensions v3_client
@@ -399,7 +404,7 @@ to a certificate, so add them during the signature with `-extfile` and
 Check that the certificate contains the client authentication extension:
 
 ```bash
-popenssl x509 -in ssl.crt/client_cert.crt -text -noout \
+openssl x509 -in ssl.crt/client_cert.crt -text -noout \
 | grep -A1 'Extended Key Usage'
 ```
 
@@ -411,7 +416,7 @@ Export the user certificate and key in one file. The PKCS#12 file is protected
 by a password:
 
 ```bash
-popenssl pkcs12 -export -in ssl.crt/client_cert.crt \
+openssl pkcs12 -export -in ssl.crt/client_cert.crt \
   -inkey ssl.key/client_key.pem -out client_cert.p12 -name "clientCert"
 ```
 
@@ -498,10 +503,10 @@ Open `$HOME/si/apache/lab-ssl.conf` and make the following changes.
     DocumentRoot "/si/www-ssl"
     ```
 
-3. Set the TLS versions. Find the `SSLProtocol` line and replace it:
+3. Force TLS 1.2. Find the `SSLProtocol` line and replace it:
 
     ```apache
-    SSLProtocol -all +TLSv1.2 +TLSv1.3
+    SSLProtocol -all +TLSv1.2
     ```
 
 4. Configure the certificate variables to point to the server certificate, the
@@ -564,35 +569,22 @@ mkdir -p $HOME/si/www-ssl/private
 printf '<html><body><h1>SSI</h1><hr><h2>Private: Server with SSL client auth active</h2></body></html>\n' > $HOME/si/www-ssl/private/index.html
 ```
 
-Open `$HOME/si/apache/lab-ssl.conf`. Add the following line after `SSLEngine on`:
-
-```apache
-SSLVerifyClient optional
-```
-
-This tells Apache to ask the browser for a client certificate when the TLS
-connection starts. Apache sends the names of the trusted CAs, so the browser can
-select the correct certificate. The server does not require the certificate yet.
-
-Add a new `<Directory>` block at the end of the file, within the <VirtualHost> block:
+Open `$HOME/si/apache/lab-ssl.conf`. Add a new `<Directory>` block at the end of
+the file, within the <VirtualHost> block:
 
 ```apache
 <Directory "/si/www-ssl/private">
     AllowOverride All
     Require all granted
-    SSLRequire %{SSL_CLIENT_VERIFY} eq "SUCCESS"
+    SSLVerifyClient require
+    SSLVerifyDepth 1
 </Directory>
 ```
 
-The `SSLRequire` directive accepts the request only when the client certificate
-is valid. The server requested the certificate during the handshake, so no new
-TLS handshake is necessary.
-
-Warning: do not use `SSLVerifyClient require` inside a `<Directory>` block. That
-form forces a TLS renegotiation after the request. Browsers reject the
-renegotiation, and Firefox shows `ERR_BAD_SSL_CLIENT_AUTH_CERT`. The server log
-shows `AH02261: Re-negotiation handshake failed` and `peer did not return a
-certificate`.
+The `SSLVerifyClient require` directive makes Apache request a client
+certificate when a request reaches `/private`.
+`SSLVerifyDepth 1` allows one certificate between the client certificate and the CA.
+The public page does not request a certificate.
 
 Restart the container:
 
@@ -601,44 +593,9 @@ podman restart apache-ssl
 ```
 
 Open `https://localhost:8443/private` in Firefox. Firefox asks for a client
-certificate because the virtual host uses `SSLVerifyClient optional`. Select the
-user certificate. The server shows the private webpage. Open
-`https://localhost:8443/` and cancel the certificate request. The server shows
-the public page.
-
-### Validate with curl without a browser
-
-> Aquesta part no funciona torna el error `error adding trust anchors from file: ./ssl.crt/ca_cert.crt`
-
-If the lab PC blocks the Firefox certificate import, use `curl`. It checks the
-same TLS behavior and needs no browser profile and no admin rights. Firefox
-remains the main path.
-
-Check the server certificate. The CA file lets `curl` trust the server:
-
-```bash
-curl --cacert $HOME/si/ssl.crt/ca_cert.crt https://localhost:8443/
-```
-> Aquesta comanda em falla: `curl --cacert ./ssl.crt/ca_cert.crt https://localhost:8443/` Sembla que CURL no pot accedir a la meva ruta: `/dades/marc.catrisse/labsi/Lab1/solution`. SI que puc fer obrir el fitxer amb el cat via terminal, però el curl no pot... Raro
-
-Check the client certificate. Pass the p12 file and its password after a colon.
-The `-i` option shows the response headers and the page. The private page returns
-`200` with the certificate and `403` without it:
-
-```bash
-# With the client certificate: 200 and the private page
-curl -i --cacert $HOME/si/ssl.crt/ca_cert.crt \
-  --cert $HOME/si/client_cert.p12:repollo --cert-type P12 \
-  https://localhost:8443/private/
-
-# Without a certificate: 403 Forbidden
-curl -i --cacert $HOME/si/ssl.crt/ca_cert.crt \
-  https://localhost:8443/private/
-```
-
-If the password contains special characters, omit `:repollo`. `curl` prompts for
-the password. The browser shows the certificate prompt and the padlock, and
-`curl` does not.
+certificate because the `/private` directory uses `SSLVerifyClient require`.
+Select the user certificate. The server shows the private webpage. Open
+`https://localhost:8443/`. The public page loads without a certificate request.
 
 ## Deliverables
 
