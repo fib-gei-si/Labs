@@ -17,6 +17,7 @@
     - [SQL Injection](#sql-injection)
   - [AJAX Security](#ajax-security)
     - [JSON Injection](#json-injection)
+- [Quiz](#quiz)
 - [Deliverables](#deliverables)
 - [References](#references)
 
@@ -410,6 +411,53 @@ WebScarab.
   ![WebGoat JSON Injection lesson with the direct flight at $60](img/img-016.png)
 
 We managed to purchase the cheapest flight.
+
+## Quiz
+
+Answer the following questions in the Atenea form.
+
+1. What is the name of the parameter that you had to modify to pass the
+   Exploit Hidden Fields lesson in the Parameter Tampering category?
+
+2. What vulnerabilities does the "Parameter Tampering - Exploit unchecked
+   mail" exercise present, and what are some of its possible exploits?
+   (Choose one or more)
+
+   - a. Theft of the administrator's credentials
+   - b. Anonymous email sending
+   - c. Relay for spam campaigns
+   - d. Cross Site Scripting (XSS)
+   - e. SQL injection
+   - f. Bitcoin mining
+
+3. Paste the sha256 hash (complete or the first 8 characters) of the message
+   that appears in red when the "Bypass Client Side JavaScript Validation"
+   exercise in the "Parameter Tampering" category is passed.
+
+4. When you pass the "Fail Open Authentication Scheme" exercise in the
+   "Improper Error Handling" category, the following message appears:
+
+   > Welcome, webgoat
+   >
+   > You have been authenticated with [ANSWER]
+
+   Complete the answer.
+
+5. What value would the cookie of a hypothetical user "sifib" have?
+
+6. What is the credit card number of Joseph Something?
+
+7. Paste the whole modified response JSON that would let you get the expensive
+   flight for \$60.
+
+8. What is the version of Tomcat that serves the webgoat application? (give
+   only the numbers separated by dots)
+
+9. What is the CVE of the vulnerability published in 2009 for the Tomcat
+   server that serves the webgoat application?
+
+10. What is the value of the "Server" field in the webgoat response headers?
+    (exact string)
 
 ## Deliverables
 
