@@ -13,6 +13,7 @@
   - [Case Creation in a Nutshell](#case-creation-in-a-nutshell)
   - [Useful Autopsy Views](#useful-autopsy-views)
 - [Some hints for the case](#some-hints-for-the-case)
+- [Quiz](#quiz)
 - [Deliverables](#deliverables)
 - [References](#references)
 - [Joe Jacobs police report](#joe-jacobs-police-report)
@@ -227,6 +228,43 @@ To help you in this case, we provide the following hints:
   105 vs end at sector 108); ii) the file is zipped and protected by a
   password; iii) you need to find the password in one of the previous files
   (check the hexdump).
+
+## Quiz
+
+Answer the following questions in the Atenea form.
+
+1. What "manipulations" has the file "Jimmy jungle.doc" suffered? (Choose
+   one)
+
+   - a. It was deleted
+   - b. The size was modified in the FAT
+   - c. The sectors were modified in the FAT
+
+2. What is the name of Joe Jacobs' marijuana supplier?
+
+3. What is the size (in bytes) of the file "coverpage.jpg"?
+
+4. How many sectors does the file "coverpage.jpg" occupy?
+
+5. What "manipulations" has the file "coverpage.jpg" suffered? (Choose one)
+
+   - a. The sectors were modified in the FAT
+   - b. The size was modified in the FAT
+   - c. It was deleted
+
+6. What is the magic number of the file with the EXE extension?
+
+7. What "manipulations" has the file with the EXE extension suffered? (Choose
+   one)
+
+   - a. The size was modified in the FAT
+   - b. It was deleted
+   - c. The sectors were modified in the FAT
+
+8. What is the value of the key data that we can find in the file
+   "coverpage.jpg"?
+
+9. How many high schools did Joe Jacobs sell marijuana to?
 
 ## Deliverables
 
