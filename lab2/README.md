@@ -462,11 +462,10 @@ Answer the following questions in the Atenea form.
 Submit the file `si-lab2.tar` in Atenea. The archive holds one image per form
 question, named `P1.jpg` to `P10.jpg`.
 
-Each image is a screenshot of the virtual machine that shows:
+Each image is a full screen capture that shows:
 
-- The full virtual machine window and the virtual image name.
 - The current date the system reports (real local time).
-- The browser or WebGoat application with your answer to the question. Include
+- The browser and/or WebGoat application with your answer to the question. Include
   the steps that solved the exercise. Do not submit only the final screen that
   reports the exercise passed.
 
