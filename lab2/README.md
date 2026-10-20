@@ -459,7 +459,7 @@ Answer the following questions in the Atenea form.
 
 ## Deliverables
 
-Submit the file `si-lab2.tar` in Atenea. The archive holds one image per Quiz
+Submit the file `si-lab2.tar` in Atenea. The archive holds one image per [Quiz](#quiz)
 question, named `P1.jpg` to `P10.jpg`.
 
 Each image is a full screen capture that shows:

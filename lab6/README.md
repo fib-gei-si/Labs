@@ -278,7 +278,7 @@ one.
 - `word.jpg`: the recovered Word file, opened.
 - `excel.jpg`: the recovered Excel file, opened.
 - `image.jpg`: the recovered image.
-- `p3.png`, `p4.png`, `p8.png`: the answers to questions 3, 4, and 8 of the Quiz.
+- `p3.png`, `p4.png`, `p8.png`: the answers to questions 3, 4, and 8 of the [Quiz](#quiz).
 
 ## References
 
