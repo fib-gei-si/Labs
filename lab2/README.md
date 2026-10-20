@@ -52,7 +52,7 @@ avoid them. We will use the following applications for this session:
 
 ## How to install
 
-1. Download WebScarab:
+1. Download [WebScarab](https://github.com/fib-gei-si/webgoat_legacy/raw/master/webscarab.jar):
 
    ```bash
    curl -sfL -o webscarab.jar https://github.com/fib-gei-si/webgoat_legacy/raw/master/webscarab.jar
@@ -459,7 +459,7 @@ Answer the following questions in the Atenea form.
 
 ## Deliverables
 
-Submit the file `si-lab2.tar` in Atenea. The archive holds one image per form
+Submit the file `si-lab2.tar` in Atenea. The archive holds one image per Quiz
 question, named `P1.jpg` to `P10.jpg`.
 
 Each image is a full screen capture that shows:

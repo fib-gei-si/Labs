@@ -599,8 +599,7 @@ Select the user certificate. The server shows the private webpage. Open
 
 ## Deliverables
 
-You have 10 days to complete the delivery. Submit one file `si-lab1.tar.gz` in
-Atenea.
+Submit one file `si-lab1.tar.gz` in Atenea.
 
 Save the three screenshots in `$HOME/si`, then make the archive from there:
 
