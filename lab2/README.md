@@ -56,7 +56,7 @@ avoid them. We will use the following applications for this session:
 
    ```bash
    curl -o webscarab.jar -sL \
-     https://github.com/fib-gei-si/webgoat_legacy/raw/master/webscarab.jar
+     https://github.com/fib-gei-si/webgoat_legacy/raw/refs/heads/master/webscarab.jar
    java -jar webscarab.jar
    ```
 
