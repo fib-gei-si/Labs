@@ -55,16 +55,14 @@ avoid them. We will use the following applications for this session:
 1. Download WebScarab:
 
    ```bash
-   curl -o webscarab.jar -sL \
-     https://github.com/fib-gei-si/webgoat_legacy/raw/master/webscarab.jar
+   curl -sfL -o webscarab.jar https://github.com/fib-gei-si/webgoat_legacy/raw/master/webscarab.jar
    java -jar webscarab.jar
    ```
 
 2. Run WebGoat in Podman:
 
    ```bash
-   podman run --name webgoat --rm -p 8080:8080 \
-     ghcr.io/fib-gei-si/webgoat_legacy
+   podman run --name webgoat --rm -p 8080:8080 ghcr.io/fib-gei-si/webgoat_legacy
    ```
 
 3. Configure Firefox:
