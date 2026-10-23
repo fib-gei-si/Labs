@@ -59,10 +59,23 @@ avoid them. We will use the following applications for this session:
    java -jar webscarab.jar
    ```
 
+   > Recent versions of Java might throw an error similar to this:
+
+    ```txt
+    cannot access class sun.security.action.GetPropertyAction (in module java.base) because module java.base does not export sun.security.action to unnamed module
+    ```
+    If that's the case, you can try to run webscarab using the flag `--add-exports`:
+    ```bash
+    java --add-exports java.base/sun.security.action=ALL-UNNAMED -jar webscarab.jar
+    ```
+
+    Otherwise, use [zaproxy](./ZAPROXY.md)
+
+
 2. Run WebGoat in Podman:
 
    ```bash
-   podman run --name webgoat --rm -p 8080:8080 ghcr.io/fib-gei-si/webgoat_legacy
+   podman run --name webgoat -it --rm -p 8080:8080 ghcr.io/fib-gei-si/webgoat_legacy
    ```
 
 3. Configure Firefox:
