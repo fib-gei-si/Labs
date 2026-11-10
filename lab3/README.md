@@ -338,14 +338,14 @@ one.
 - `sso_succeeded.png`: the "Single Sign-on succeeded" result from
   [Link the accounts](#link-the-accounts).
 - `signin_openam.png`: the login page of `www.siupc.cat`, together with the
-  terminal that runs the Apache server container and a text file with the
-  student name and group.
+  terminal that runs the Apache server container.
 - `signin_works.png`: the same as above after you enter the `si_user`
   credentials ("It works!").
 - `wireshark1.png`: the `AMAuthCookie` cookie, which tracks the users in the
   authentication process.
 - `wireshark2.png`: the `iPlanetDirectoryPro` cookie, the AM session cookie
   after the user authenticates successfully.
+- `openam.pcap`: the captured network traffic.
 
 Wireshark must capture the whole HTTP message exchange.
 
