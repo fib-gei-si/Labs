@@ -276,6 +276,10 @@ podman run --rm --cap-add=net_admin,net_raw \
   tshark -i eth0 -w - > ~/capture/openam.pcap
 ```
 
+`eth0` is the interface that podman creates for the apache container. To list
+the interfaces, run the same sidecar with `tshark -D` instead of `-i eth0`. To
+capture on every interface, use `-i any`.
+
 The capture goes to `~/capture/openam.pcap`. Start it before you log in and
 stop it with `Ctrl+C` after access is granted, so the file holds the LOGIN flow.
 Then open `~/capture/openam.pcap` in Wireshark and apply the `http` display
