@@ -271,13 +271,13 @@ Answer the following questions in the Atenea form.
 Submit the following screenshots in Atenea. Use the given file name for each
 one.
 
-- `word-du.jpg`: the "Data Unit" view of the Word file. Show the initial
+- `word-du.png`: the "Data Unit" view of the Word file. Show the initial
   sector, the number of sectors, and the content view.
-- `excel-du.jpg`: the "Data Unit" view of the Excel file. Show the initial
+- `excel-du.png`: the "Data Unit" view of the Excel file. Show the initial
   sector, the number of sectors, and the content view.
-- `word.jpg`: the recovered Word file, opened.
-- `excel.jpg`: the recovered Excel file, opened.
-- `image.jpg`: the recovered image.
+- `word.png`: the recovered Word file, opened.
+- `excel.png`: the recovered Excel file, opened.
+- `image.png`: the recovered image.
 - `p3.png`, `p4.png`, `p8.png`: the answers to questions 3, 4, and 8 of the [Quiz](#quiz).
 
 ## References
