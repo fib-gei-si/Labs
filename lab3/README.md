@@ -264,20 +264,21 @@ After this, we have to prepare a web server. This requires two steps:
      ghcr.io/fib-gei-si/openam-web-agents/apache_agent
    ```
 
-Now, you can capture the traffic to `www.siupc.cat` from inside the network.
-Open a new terminal and run a `tshark` sidecar in the network namespace of the
-apache container. Rootless Podman drops `CAP_NET_RAW` and `CAP_NET_ADMIN`, so
-the sidecar needs the `--cap-add=net_admin,net_raw` flag. Leave it running:
+Now, you can capture the login traffic from inside the network. The login page
+and the OpenAM cookies come from the SP, so run a `tshark` sidecar in the
+network namespace of the `sp_openam` container. Rootless Podman drops
+`CAP_NET_RAW` and `CAP_NET_ADMIN`, so the sidecar needs the
+`--cap-add=net_admin,net_raw` flag. Leave it running:
 
 ```bash
 mkdir -p ~/capture
 podman run --rm --cap-add=net_admin,net_raw \
-  --network container:apache_agent docker.io/antrea/tshark \
+  --network container:sp_openam docker.io/antrea/tshark \
   tshark -i eth0 -w - > ~/capture/openam.pcap
 ```
 
-`eth0` is the interface that podman creates for the apache container. To list
-the interfaces, run the same sidecar with `tshark -D` instead of `-i eth0`. To
+`eth0` is the interface that podman creates for the container. To list the
+interfaces, run the same sidecar with `tshark -D` instead of `-i eth0`. To
 capture on every interface, use `-i any`.
 
 The capture goes to `~/capture/openam.pcap`. Start it before you log in and
