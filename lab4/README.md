@@ -132,7 +132,7 @@ xor ecx, ecx ;
 mov al, ?? ; search which is the code for write system call
 mov bl, ?? ; stdout file descriptor
 pop ecx ; get the address of the string from the stack (IP from call!!)
-mov dl, ?? ; length of the string you want to print in the last line, count \0
+mov dl, ?? ; length of the string on the last line, count the \0 that C adds
 int 0x80 ; Interrupt for kernel to run the syscall
 
 xor eax, eax
@@ -150,6 +150,12 @@ which is the integer value to the `write` system call, the default STDOUT file
 descriptor and the length of the string you defined. Careful, and remember, if
 you use `int 0x80` the system call number will be different from when we invoke
 the `syscall` instruction.
+
+The `\0` you have to count is not part of your shellcode. `char code[] = "..."`
+always appends one, so the array holds one more byte than your `db` line. Writing
+that byte prints the whole array, and the extra `\0` does not show on the
+terminal. Never add the `\0` to the `db` line: it would become part of the blob
+and break the shellcode when we inject it into a string.
 
 Once this is clear, we have to actually generate the bytecode for our shellcode.
 This is a fairly easy process to perform. First we have to generate the object
