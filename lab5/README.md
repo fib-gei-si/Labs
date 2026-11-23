@@ -9,6 +9,7 @@
 - [Analysis tools](#analysis-tools)
   - [GDB](#gdb)
   - [Radare2](#radare2)
+- [Where to start](#where-to-start)
 - [Deliverables](#deliverables)
 - [References](#references)
 
@@ -149,6 +150,22 @@ q
 ```
 
 Use `?` inside Radare2 for command help.
+
+## Where to start
+
+To help you start, we provide the following hints:
+
+- Run `/challenge` once and read every message it prints. They tell you in
+  which order the program does its work.
+- Static analysis shows only part of the program. Ask yourself which of the
+  phases you saw in the output you can find in the executable, and which one
+  you cannot.
+- A debugger lets you stop the program between two of those phases. Choose the
+  moment when the code that you could not find is ready to run, and look at
+  what is in memory then. That code is not part of the executable, so look at
+  the memory map of the process when you stop.
+- Your explanation must name the check, the address where you found it, and
+  the steps you followed.
 
 ## Deliverables
 
