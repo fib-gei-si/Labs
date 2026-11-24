@@ -45,32 +45,31 @@ avoid them. We will use the following applications for this session:
   different attacks directed to web applications (test environment). It has
   different lessons that provide us with help and information to understand and
   to be able to overcome them.
-- **WebScarab** is a framework to analyze web applications developed by OWASP.
-  It uses HTTP and HTTPS, and it can be used as a proxy to study a web page
-  requests and responses, review and modify them before they get to the client
-  or the server.
+- **OWASP ZAP** is an intercepting proxy and security scanner developed by
+  OWASP. It sits between the browser and the web application, so you can study
+  the requests and responses and change them before they reach the server or
+  the browser.
 
 ## How to install
 
-1. Download [WebScarab](https://github.com/fib-gei-si/webgoat_legacy/raw/master/webscarab.jar):
+1. Install and run OWASP ZAP. The easiest way is the Podman image with
+   Webswing, which shows the ZAP desktop in a browser tab:
 
    ```bash
-   curl -sfL -o webscarab.jar https://github.com/fib-gei-si/webgoat_legacy/raw/master/webscarab.jar
-   java -jar webscarab.jar
+   podman run -it --rm --name zaproxy \
+     -p 127.0.0.1:3000:8080 \
+     -p 127.0.0.1:8008:8090 \
+     ghcr.io/zaproxy/zaproxy:stable zap-webswing.sh
    ```
 
-   > Recent versions of Java might throw an error similar to this:
+   Open <http://localhost:3000/zap/>. ZAP proxies on port `8008` of your
+   computer. To stop ZAP, close the tab and press `Ctrl+C` in the terminal.
 
-    ```txt
-    cannot access class sun.security.action.GetPropertyAction (in module java.base) because module java.base does not export sun.security.action to unnamed module
-    ```
-    If that's the case, you can try to run webscarab using the flag `--add-exports`:
-    ```bash
-    java --add-exports java.base/sun.security.action=ALL-UNNAMED -jar webscarab.jar
-    ```
-
-    Otherwise, use [zaproxy](./ZAPROXY.md)
-
+   You can also
+   [download the Linux package](https://www.zaproxy.org/download/), extract it
+   and run `./zap.sh`. The package listens on port `8080` by default, the same
+   port as WebGoat. Change it to `8008` in "Options → Network → Local
+   Servers/Proxies" before you continue.
 
 2. Run WebGoat in Podman:
 
@@ -78,7 +77,18 @@ avoid them. We will use the following applications for this session:
    podman run --name webgoat -it --rm -p 8080:8080 ghcr.io/fib-gei-si/webgoat_legacy
    ```
 
-3. Configure Firefox:
+3. Open "Options → Breakpoints" in ZAP. Set "Break buttons mode" to
+   "separate" and enable "Show buttons to select the requests you don't want
+   ZAP to break on". The top toolbar then has one button for requests and one
+   for responses, and the Break tab lets you skip JavaScript, CSS and font, and
+   multimedia files.
+
+   ZAP traps the next message after you press a break button, and that message
+   is not always the one you want: Firefox sends background requests, and a
+   page loads many files. Click "Step" to forward the trapped message and trap
+   the next one, and click "Continue" to forward it and stop trapping.
+
+4. Configure Firefox:
    a. Open `about:config` writing it in the address bar and set
       `network.proxy.allow_hijacking_localhost=true` to allow proxy to
       localhost and `app.update.auto=false` to disable automatic updates.
@@ -93,8 +103,11 @@ avoid them. We will use the following applications for this session:
 
       ![Firefox Manual proxy configuration with HTTP Proxy 127.0.0.1 port 8008](img/img-001.png)
 
-4. Open <http://127.0.0.1:8080/webgoat/attack> in the browser (user/pass:
-   guest/guest).
+5. Open WebGoat. If ZAP runs in the Podman container, use
+   <http://host.containers.internal:8080/webgoat/attack>, because from inside
+   the container that name resolves to your computer, where WebGoat listens on
+   port `8080`. If ZAP runs on your computer, use
+   <http://127.0.0.1:8080/webgoat/attack>. Log in with user/pass: guest/guest.
 
 ## Exercises
 
@@ -130,20 +143,16 @@ Try several times "Update chart" or "Purchase" or observing the code, clicking
 Let's now watch the request sent to the server when we try to buy. Follow the
 steps:
 
-- Go to WebScarab and tick "Intercept Requests" inside the "Intercept" tab.
-
-  ![WebScarab Lite Intercept tab with "Intercept requests" checked](img/img-003.png)
+- Click "Set break on all requests" in ZAP's top toolbar.
 
 - Once the requests' interception has been activated, go back to WebGoat and
   try to buy by clicking on "Purchase".
 
-- You will then see a new WebScarab window popping up with the intercepted
-  request. If we take a look at the tab "URLEncoded" we will find variables
-  (QTY, SUBMIT, Price). One of the variables refer to the purchase price, try
-  to modify the price at column "Value", disable the requests' interception
-  (clicking again on "Intercept Requests") and click on "Accept Changes".
-
-  ![WebScarab Edit Request URLEncoded tab showing QTY, SUBMIT and Price variables](img/img-004.png)
+- ZAP traps the request and shows it in the "Break" tab. Open the "Body" view
+  of the request panel and find the variables (QTY, SUBMIT, Price). One of the
+  variables refers to the purchase price. Change the value of the price, then
+  click "Continue" in the toolbar. ZAP forwards the changed request and stops
+  trapping requests.
 
 #### e-mail not validated
 
@@ -160,12 +169,11 @@ Java" to be able to modify the e-mail address. Have you found anything?
   ```
 
 - Observe that you are able to add your own script and execute whatever you
-  want. Now, let's change the e-mail address field. This can be accomplished by
-  intercepting the request with WebScarab and changing the hidden field "to"
-  from `webgoat.admin@owasp.org` to `alumne@fib.upc.edu` (don't worry, no email
-  is actually sent during this test).
-
-  ![WebScarab Edit Request URLEncoded tab with the "to" field and the XSS script in msg](img/img-005.png)
+  want. Now, let's change the e-mail address field. Click "Set break on all
+  requests" in ZAP and send the comments. In the request body of the Break tab
+  change the hidden field "to" from `webgoat.admin@owasp.org` to
+  `alumne@fib.upc.edu` (don't worry, no email is actually sent during this
+  test), then click "Continue".
 
 #### Avoid validations on the client side
 
@@ -205,21 +213,21 @@ if (err > 0) {
 This code is downloaded when requesting the web page. Let's try to skip the
 validation.
 
-We need to modify WebScarab configuration to be able to intercept server's
-responses. On tab Intercept, check "Intercept Responses" and verify that
-"Intercept Requests" is disabled. Now reload the browser's page to issue a new
-request. You will see a new WebScarab window with the intercepted response. If
-we click on the "Raw" tab from the lower half window we will be able to see the
-server's response and there we will find the code to validate the fields that
-we want to avoid.
+We need to intercept the server's responses. Click "Set break on all
+responses" in ZAP's top toolbar. ZAP also traps the scripts, style sheets and
+images of the page. When ZAP traps one of these files, click its button in the
+Break tab ("Javascript Files", "CSS and Fonts Files" or "Multimedia Files") to
+stop breaking on that kind of file.
 
-![WebScarab Edit Response Raw tab showing the JavaScript validation function](img/img-007.png)
+Reload the browser's page to issue a new request. ZAP traps the response of
+the page in the "Break" tab. Open the "Body" view of the response panel and
+find there the code to validate the fields that we want to avoid.
 
 Edit the validate code, forcing the error count to 0 by adding `err=0;` before
-`if (err>0) alert(msg);`. Uncheck "Intercept responses", click on "Accept
-Changes", go back to the web page and click "Submit" to send incorrect data to
-the server. We have been able to avoid the client's validation and to send
-incorrect information to the server.
+`if (err>0) alert(msg);`. Click "Continue" in the toolbar to send the changed
+response to the browser, go back to the web page and click "Submit" to send
+incorrect data to the server. We have been able to avoid the client's validation
+and to send incorrect information to the server.
 
 Open the browser console (right click → Inspect → Console) and paste the
 snippet to obtain the SHA256 from the message in red that appears when you pass
@@ -256,12 +264,14 @@ Go to WebGoat lesson "Fail Open Authentication Scheme" in "Improper Error
 Handling". Try solving the lesson bypassing the authentication check by
 generating an uncaught error in the server.
 
-- Enter username "webgoat" and click "Login".
+- Enter username "webgoat" and leave the password empty.
 
   ![WebGoat Sign In form with User Name "webgoat" and empty Password](img/img-008.png)
 
-- Intercept the request with WebScarab.
-- Click on the variable "Password" and click "Delete". Click "Accept changes".
+- Click "Set break on all requests" in ZAP, then click "Login".
+- In the request body of the Break tab delete the whole "Password" parameter,
+  its value and the "&" that joins it to the previous parameter, then click
+  "Continue".
 
 You are now "authenticated" as WebGoat.
 
@@ -286,13 +296,13 @@ Let's take a look at the mechanism used to authenticate using the cookie:
 
 - Log in as "webgoat".
 
-  ![WebScarab request with Cookie AuthCookie=65432ubphcfx](img/img-009.png)
+- Click "Set break on all requests" in ZAP and click "Refresh". ZAP traps the
+  request and shows it in the "Break" tab; observe the value of the cookie in
+  the "Header" view of the request panel. Click "Continue" to forward it.
 
-- Check the WebScarab "Intercept Request" box and click "Refresh". You will see
-  a new window with the request; observe the cookie's value. Uncheck "Intercept
-  Requests" and click "Accept Changes".
-
-  ![WebScarab request with Cookie AuthCookie=65432udfqtb](img/img-010.png)
+- You can also read the cookie without breaking requests. Select the request in
+  the "History" tab and open the "Request" tab; the Cookie header shows the
+  value.
 
 - Do the same for the user "aspect" observing the value of the cookie; compare
   it with the one for the user "webgoat".
@@ -349,10 +359,9 @@ Therefore, to generate the code for user "alice":
 | Alice   | 65432fdjmb   |
 
 Now, let's send the server the modified value of "AuthCookie": start a session
-with for user "webgoat" or "aspect", check WebScarab's "Intercept Requests" and
-click "Refresh". On the new WebScarab window containing the request, modify the
-value for "AuthCookie" using the one we have calculated, uncheck "Intercept
-Requests" and click on "Accept Changes".
+for user "webgoat" or "aspect", click "Set break on all requests" and
+click "Refresh". On the request trapped in the Break tab, modify the value for
+"AuthCookie" using the one we have calculated, and click "Continue".
 
 You can now see a page that is greeting user "alice".
 
@@ -408,15 +417,14 @@ get the cheaper direct (without stops) flight between Boston (BOS) and Seattle
 (SEA).
 
 Like with the previous lessons, you need to manipulate the HTTP Response using
-WebScarab.
+ZAP.
 
-- Examine the normal flow by entering the airport code BOS and SEA and
-  intercept the HTTP Response in WebScarab.
+- Examine the normal flow by entering the airport code BOS and SEA. Click "Set
+  break on all responses" in ZAP before you send the request. ZAP traps the
+  JSON response in the "Break" tab.
 
-  ![WebScarab Edit Response showing the JSON with the $600 expensive flight](img/img-015.png)
-
-- Change the price for the expensive flight of $600 to $60 and click "Accept
-  changes".
+- Open the "Body" view of the response panel, change the price for the
+  expensive flight of $600 to $60 and click "Continue".
 - Select the flight with no stops and the updated price and click "Submit".
 
   ![WebGoat JSON Injection lesson with the direct flight at $60](img/img-016.png)
@@ -485,6 +493,8 @@ Each image is a full screen capture that shows:
 ## References
 
 - OWASP Project: <http://www.owasp.org>
+- OWASP ZAP: <https://www.zaproxy.org>
+  - <https://www.zaproxy.org/docs/desktop/ui/tabs/break/>
 - OWASP Project at Sourceforge: <http://sourceforge.net/projects/owasp>
 - Web Application Security Consortium (WASC): <http://www.webappsec.org>
 - Common Vulnerabilities and Exposures (CVE): <http://www.cve.mitre.org>
