@@ -67,9 +67,8 @@ avoid them. We will use the following applications for this session:
 
    You can also
    [download the Linux package](https://www.zaproxy.org/download/), extract it
-   and run `./zap.sh`. The package listens on port `8080` by default, the same
-   port as WebGoat. Change it to `8008` in "Options → Network → Local
-   Servers/Proxies" before you continue.
+   and run `./zap.sh -port 8008`. The package uses port `8080` by default, the
+   same port as WebGoat.
 
 2. Run WebGoat in Podman:
 
