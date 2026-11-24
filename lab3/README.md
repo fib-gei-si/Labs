@@ -15,14 +15,13 @@
 
 When dealing with distributed scenarios, it is common to use federated
 authentication, this allows to delegate all the authentication tasks to a third
-party. In this lab, we will install and configure a SAML authentication system
-in a federated environment.
+party. In this lab, we will install and configure a federated environment with
+two Keycloak servers: an Identity Provider and a Service Provider.
 
-The goal of this lab is to configure a fully working federated environment using
-a Service Provider with Apache and an Identity Provider. To do so, we will use
-OpenAM from ForgeRock, which is a community driven implementation. For this to
-work, we will have to simulate ownership of a public domain. The domain we will
-be using is `siupc.cat`.
+The browser talks OpenID Connect to the Service Provider, which serves the web
+applications. The Service Provider talks SAML to the Identity Provider, which
+holds the credentials. To do this, we will simulate ownership of a public
+domain. The domain we will be using is `siupc.cat`.
 
 ![Federated authentication scheme: Identity Provider with student_idp, Service Provider with student_sp, Apache and the browser](img/img-000.png)
 
@@ -41,17 +40,22 @@ If there is, stop and delete it by running:
 podman stop [container name] && podman rm [container name]
 ```
 
+**IMPORTANT:** Keycloak keeps the realms, the users and the keys inside the
+container. Use `podman stop` and `podman start` between sessions. If you delete a
+container, its realm is gone, and the two servers no longer trust each other,
+because the keys change. The realm keys stay when you only stop the container.
+
 1. Create the podman network that will be used by the containers to talk to each
    other:
 
    ```bash
-   podman network create openam
+   podman network create keycloak
    ```
 
 2. Start a forward proxy on the network:
 
    ```bash
-   podman run -d --network openam --name proxy -p 127.0.0.1:8008:8008 \
+   podman run -d --network keycloak --name proxy -p 127.0.0.1:8008:8008 \
      -e PORT=8008 -e DISABLE_VIA_HEADER=1 docker.io/kalaksi/tinyproxy
    ```
 
@@ -68,222 +72,226 @@ podman stop [container name] && podman rm [container name]
 
 ### Configure Identity Provider
 
-1. Start OpenAM for the Identity Provider in Podman:
+1. Start Keycloak for the Identity Provider in Podman:
 
    ```bash
-   podman run -d --network openam -h idp.siupc.cat --name idp_openam \
-     ghcr.io/fib-gei-si/openidentityplatform/openam
+   podman run -d --network keycloak -h idp.siupc.cat --name idp_keycloak \
+     -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=coliflor \
+     quay.io/keycloak/keycloak:26.8 start-dev
    ```
 
 2. Configure the service. The container needs about a minute to start. If the
    page does not load, wait and reload. Open a Web Browser to
-   <http://idp.siupc.cat:8080/openam>
+   <http://idp.siupc.cat:8080/admin> and log in with `admin` / `coliflor`. The
+   administration console opens in the `master` realm. The yellow banner about a
+   temporary admin user is expected, and it does not affect the lab.
 
-3. Create Default configuration. Read and accept the license.
+3. Create the realm for the Identity Provider. Manage realms / **Create realm**,
+   name it `siupc-idp` and click **Create**. Keycloak switches to the new realm.
 
-   ![OpenAM Configuration Options page with the Create Default Configuration option circled](img/img-001.png)
+   ![Keycloak Create realm dialog with the realm name siupc-idp](img/img-001.png)
 
-4. You will need to provide default user passwords during the default
-   configuration. Both passwords need to be different and at least 8 characters
-   long. For example, we can use `coliflor` for `amadmin` and `broccoli` for the
-   policy agent. We will only use the first one in the lab.
+4. Create a user. **Users** / **Create new user** (the button reads **Add user**
+   once the realm has users), and fill in the username `student_idp`, the email
+   `student@siupc.cat`, and your first and last name.
 
-   ![OpenAM default configuration credentials form with the amadmin and policy agent passwords](img/img-002.png)
+   ![Keycloak Create user form for student_idp](img/img-002.png)
 
-5. If all is good, you should see the message "Configuration Complete"
+5. Set the password. Open the user, go to **Credentials** / **Set password**,
+   write `coliflor` twice, turn **Temporary** off, click **Save** and confirm
+   with **Save password**. A temporary password forces a password change on the
+   first login, and that change gets in the way of the federation.
 
-   ![OpenAM Configuration Complete dialog](img/img-003.png)
+6. Note the SAML metadata of this realm. The Service Provider needs it, and the
+   administration console shows it under **Realm settings** / **General** /
+   **Endpoints** / **SAML 2.0 Identity Provider Metadata**:
 
-6. Log in to the IDP. Login: `amadmin`/`coliflor`. Enter in **Top Level Realm**
-   and browse around a little bit to see the huge amount of options we can use on
-   this system.
-
-   ![OpenAM Top Level Realm overview page](img/img-004.png)
-
-7. Go to **Top Level Realm / Subjects** (left menu) and create a new user, for
-   example: `student_idp`. Use any credentials you want, take note of the
-   password (for sake of simplicity, use again `coliflor`). Go back to the
-   previous menu.
-
-8. Configure the federation. To do this, first we must create a Circle of Trust
-   (COT). Go to: **Top Level Realm / Applications** (left menu) / **WS-Fed**
-
-   - There go to **Circle of Trust** and create a new COT
-   - Put some significant name, e.g., `COTIDP`
-   - You can leave the rest blank, in a real scenario we should have domains and
-     select the appropriate one.
-
-9. Create a SAMLv2 provider. Head to: **Top Level Realm / Configure SAMLv2
-   Provider** (main menu)/ **Create Hosted Identity Provider**
-
-   - Select the test option in metadata's Signing Key
-   - Make sure that the COT is the one you previously created (e.g: `COTIDP`)
-   - Click **Configure** on the upper right hand.
-   - Leave open the window that appears.
+   ```text
+   http://idp.siupc.cat:8080/realms/siupc-idp/protocol/saml/descriptor
+   ```
 
 ### Configure Service Provider
 
-1. Start OpenAM for the Service Provider in Podman:
+1. Start Keycloak for the Service Provider in Podman:
 
    ```bash
-   podman run -d --network openam -h sp.siupc.cat --name sp_openam \
-     ghcr.io/fib-gei-si/openidentityplatform/openam
+   podman run -d --network keycloak -h sp.siupc.cat --name sp_keycloak \
+     -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=coliflor \
+     quay.io/keycloak/keycloak:26.8 start-dev
    ```
 
-2. Configure the service. The container needs about a minute to start. If the
-   page does not load, wait and reload. Open a Web Browser to
-   <http://sp.siupc.cat:8080/openam>
+2. Configure the service. The container needs about a minute to start. Open a
+   Web Browser to <http://sp.siupc.cat:8080/admin> and log in with
+   `admin` / `coliflor`.
 
-3. Create Default configuration. Read and accept the license.
+3. Create the realm for the Service Provider. Manage realms / **Create realm**,
+   name it `siupc` and click **Create**.
 
-4. You will need to provide default user passwords during the default
-   configuration. Both passwords need to be different and at least 8 characters
-   long. For example, we can use `coliflor` for `amadmin` and `broccoli` for the
-   policy agent. We will only use the first one in the lab.
+4. Create a user. **Users** / **Create new user**, with the username
+   `student_sp`, your first and last name, and the same email as the IdP user,
+   `student@siupc.cat`. Set the password like before, with **Credentials** /
+   **Set password** and **Temporary** off. Both accounts belong to the same
+   student, and the federation uses the email to recognize it.
 
-5. If all is good, you should see the message "Configuration Complete"
+5. Create the federation. Go to **Identity providers** and pick **SAML v2.0**.
+   Keep **Use entity descriptor** on, and put the metadata URL of the Identity
+   Provider in **SAML entity descriptor**. Click **Add**.
 
-6. Log in to the SP. Login: `amadmin`/`coliflor`.
+   ![Keycloak Add SAML provider page with the alias idp and the IdP metadata URL](img/img-003.png)
 
-7. Go to **Top Level Realm / Subjects** (left menu) and create a new user, for
-   example: `student_sp`. Use any credentials you want, take note of the password
-   (for sake of simplicity, use again `coliflor`). Go back to the previous menu
+6. Now the Identity Provider has to trust the Service Provider. The descriptor
+   of the Service Provider is at:
 
-8. Go to: **Top Level Realm / Applications** (left menu) / **WS-Fed**
+   ```text
+   http://sp.siupc.cat:8080/realms/siupc/broker/idp/endpoint/descriptor
+   ```
 
-   - There go to **Circle of Trust** and create a new COT
-   - Put some significant name, e.g., `COTSP`
-   - You can leave the rest blank, in a real scenario we should have domains and
-     select the appropriate one.
+   Open that URL in a tab and save the page as `sp.xml` (`Ctrl+S`). If the import
+   rejects the file, download the descriptor from the shell instead, which keeps
+   the XML untouched:
 
-9. Go to **Top Level Realm / Configure SAMLv2 Provider / Create Hosted Service
-   Provider**
+   ```bash
+   curl -x http://127.0.0.1:8008 -o sp.xml \
+     http://sp.siupc.cat:8080/realms/siupc/broker/idp/endpoint/descriptor
+   ```
 
-   - Use existing COT (`COTSP`) and click configure.
-   - Click yes when asked to create a remote IDP
-   - Put the following URL on the configuration of the remote server:
-     <http://idp.siupc.cat:8080/openam/saml2/jsp/exportmetadata.jsp?entityid=http://idp.siupc.cat:8080/openam&realm=/>
+7. Go back to the Identity Provider console
+   (<http://idp.siupc.cat:8080/admin>), open **Clients**, click
+   **Import client**, choose `sp.xml` and click **Save**. The client id becomes
+   the entity id of the Service Provider, and the ACS URL and the signing
+   certificate come from the file.
 
-10. If everything went well, you will see the message "Identity provider is
-    configured."
-
-Now go back to the IDP, where we have to configure the remote SP:
-
-1. If you left the screen just after pressing configure before now, you can go to
-   "register a service provider"
-
-   - If not, you have to navigate to **Top Level Realm / Configure a SAMLv2
-     Provider / Configure Remote Service Provider**
-
-2. Put the following URL:
-
-   - <http://sp.siupc.cat:8080/openam/saml2/jsp/exportmetadata.jsp?entityid=http://sp.siupc.cat:8080/openam&realm=/>
-
-3. If everything went well, you will see the message "Service provider is
-   configured."
+   ![Keycloak Import client page with sp.xml and the entity id of the Service Provider](img/img-004.png)
 
 ### Link the accounts
 
 Now that we have created a couple of students, we need to map them together as
-the same student. In a real scenario this could be done more efficiently, but for
-the demo purposes, we will log in twice. So, we will use the SSO login page. To
-avoid having credential issues, make sure you do this in Incognito mode, so
-previous cookies are not used, and the login happens from scratch:
+the same student. The Service Provider recognizes the account by the email that
+the Identity Provider sends, and asks you to confirm that the account is yours.
+To avoid having credential issues, make sure you do this in a private window, so
+previous cookies are not used, and the login happens from scratch.
 
-<http://sp.siupc.cat:8080/openam/saml2/jsp/spSSOInit.jsp?metaAlias=/sp&idpEntityID=http://idp.siupc.cat:8080/openam>
+Open the login page of the Service Provider, and skip the local form by naming
+the identity provider `idp`:
 
-**Note:** if you see an error page, that means you're not in a real incognito
-window. Just log out from SP and IDP and retry with the link above.
+```text
+http://sp.siupc.cat:8080/realms/siupc/protocol/openid-connect/auth?client_id=account&redirect_uri=http://sp.siupc.cat:8080/realms/siupc/account/&response_type=code&scope=openid&kc_idp_hint=idp
+```
 
-Although the initial link is for SP, you will be redirected to IDP. Login with
-IDP credentials (`student_idp`). If that succeeds, you will be redirected to SP
-again. Then, login with SP credentials (`student_sp`). This will map both users,
-and will provide the necessary cookies to avoid reauthenticating. You will see
-the message "Single Sign-on succeeded." if everything went well.
+You land on the Identity Provider, where you log in as `student_idp`. Then you
+return to the Service Provider, which does not know you yet. It asks for your
+data, because the assertion carries a persistent identifier and no attributes:
 
-You can see this by opening a new tab (in the incognito window) and going to
-<http://idp.siupc.cat:8080/openam> the system automatically identifies you as
-`student_idp`. The same happens if you browse to
-<http://sp.siupc.cat:8080/openam>, where you will be logged as `student_sp`.
+![Keycloak Update Account Information form with the username student_idp and the email of the student](img/img-005.png)
 
-![OpenAM user profile for student_sp on the Service Provider and student_idp on the Identity Provider](img/img-005.png)
+Fill in the username `student_idp`, the email `student@siupc.cat` and your name,
+and click **Submit**. The email already belongs to `student_sp`, so Keycloak
+offers to link the two accounts:
 
-If something goes wrong, you can log out using the following link:
+![Keycloak Account already exists dialog with the Review profile and Add to existing account options](img/img-006.png)
 
-<http://sp.siupc.cat:8080/openam/saml2/jsp/spSingleLogoutInit.jsp?metaAlias=/sp&idpEntityID=http://idp.siupc.cat:8080/openam>
-(don't do it now!)
+Click **Add to existing account**, and authenticate as `student_sp` to prove
+that the local account is yours. You end up in the account console of the
+Service Provider. Open a new tab and go to
+<http://idp.siupc.cat:8080/realms/siupc-idp/account/>: the Identity Provider still
+recognizes you as `Student IdP`, without asking for the password again.
+
+You can see the result in the Service Provider console, under **Users** /
+`student_sp` / **Identity provider links**:
+
+![Identity provider links tab of student_sp with the link to the IdP](img/img-007.png)
+
+If something goes wrong, delete the cookies of the private window and start
+again. To log out, use <http://sp.siupc.cat:8080/realms/siupc/account> and click
+**Sign out**, then do the same on the Identity Provider with
+<http://idp.siupc.cat:8080/realms/siupc-idp/account/>.
 
 ## Exercise
 
-Now, using OpenAM's authorization framework, we have the goal of configuring a
-web page with access limitations to a particular group of users.
+Now we have the goal of configuring a web page with access limitations to a
+particular group of users. The page is served by an Apache server that acts as
+the enforcement point: it asks the Service Provider for a token, and grants
+access only when the token says that the user is an administrator.
 
-Firstly, create on the SP a new user and group (Subjects). We will call the user
-`si_user` (password: `acme1234`) and the group will be named `administrator`.
+First, create the users and the group on the Service Provider. Create the user
+`si_user` (password: `acme1234`, temporary off, with your first and last name),
+create the group `administrator` under **Groups**, and add the user to the group
+with **Users** / `si_user` / **Groups** / **Join group**.
 
-Navigate to the group menu and add the user to the `administrator` group.
+Second, create the client for the web server. Go to **Clients** / **Create
+client** and:
 
-Since the web page will be located at `www.siupc.cat` you have to add a Cookie
-Domain for this domain.
+- Set **Client ID** to `apache_agent` and click **Next**.
+- Turn **Client authentication** off, keep **Standard flow** on, turn
+  **Require PKCE** on, and click **Next**.
+- Set **Valid redirect URIs** to `http://www.siupc.cat/redirect_uri` and
+  **Web origins** to `http://www.siupc.cat`, then click **Save**.
 
-Go to **Configure** (top menu)/ **Global Services / Platform**, and add the
-`www.siupc.cat` and `siupc.cat` domains:
+It needs to look like:
 
-![OpenAM Platform page with the Cookie Domains sp.siupc.cat, www.siupc.cat and siupc.cat](img/img-006.png)
+![Access settings of the apache_agent client with the redirect URI and the web origin](img/img-008.png)
 
-Don't forget to save the changes.
+By default the token carries no group membership, and the Apache configuration
+requires the `administrator` group. Add the claim with **Clients** /
+`apache_agent` / **Client scopes** / `apache_agent-dedicated` / **Mappers** /
+**Configure a new mapper** / **Group Membership**:
 
-Next, create Policy Sets. You will have to investigate a little bit, browse
-through the **Top Level Realm / Authorization** (left menu) / **Policy Sets**
-menu.
+- Set **Name** and **Token Claim Name** to `groups`.
+- Turn **Full group path** off, so the claim holds `administrator` and not
+  `/administrator`.
+- Click **Save**.
 
-- Your goal is to add a rule to the "Default Policy Set" to allow administrators
-  to access any web page from the domain.
-- Play around the options to manage to set up the permissions.
-- Your goal is to get something like:
+![Group Membership mapper of the apache_agent client with the claim name groups](img/img-009.png)
 
-![OpenAM policy set for Auth Users with the URL resource, the GET and POST actions and the administrator group subject](img/img-007.png)
+Now build and run the web server. The configuration in `lab3/apache` requires
+the claim with the line `Require claim groups:administrator`:
 
-After this, we have to prepare a web server. This requires two steps:
+```bash
+podman build -t apache_agent lab3/apache
+podman run -d --network keycloak -h www.siupc.cat --name apache_agent apache_agent
+```
 
-1. To create a Web Agent named `apache_agent` (password: `passw0rd`). Search
-   around the **Top Level Realm / Applications / Web Agents** menu. Set the
-   **Server URL** to `http://sp.siupc.cat:8080/openam` and the **Agent URL** to
-   `http://www.siupc.cat:80/`. It needs to look like:
+Nothing binds port 80 on the host. The proxy connects to the server inside the
+network, where it listens on port 80.
 
-   ![OpenAM New Agent form for apache_agent with Server URL http://sp.siupc.cat:8080/openam and Agent URL http://www.siupc.cat:80/](img/img-008.png)
+Browse to <http://www.siupc.cat>. The server redirects you to the login page of
+the Service Provider:
 
-   Nothing binds port 80 on the host. The proxy connects to the agent inside the
-   network, where it listens on port 80, so the Agent URL keeps port 80.
+![Keycloak login page of the siupc realm reached from www.siupc.cat](img/img-010.png)
 
-2. Run an apache server with the following command:
+Log in as `si_user`. The Service Provider returns a token with the groups, the
+claim matches, and the page says "It works!".
 
-   ```bash
-   podman run -it --name apache_agent -h www.siupc.cat \
-     --network openam --shm-size 2G -e PA_PASSWORD=passw0rd \
-     ghcr.io/fib-gei-si/openam-web-agents/apache_agent
-   ```
+Test the other side too. Log out, open a private window, browse to
+<http://www.siupc.cat> and log in as `student_sp`, who is not in the
+`administrator` group. The claim is missing, so the server answers 401
+Unauthorized.
+
+**IMPORTANT:** To avoid messing up with the cookies, use a private window for
+these tests. An active session skips the login form, and you will see the result
+of the previous user. In case you see any HTTP 401 or 403 error on the apache
+server, delete all cookies from your browser.
 
 Now, you can capture the login traffic from inside the network. The login page
-and the OpenAM cookies come from the SP, so run a `tshark` sidecar in the
-network namespace of the `sp_openam` container. Rootless Podman drops
-`CAP_NET_RAW` and `CAP_NET_ADMIN`, so the sidecar needs the
+and the Keycloak cookies come from the Service Provider, so run a `tshark`
+sidecar in the network namespace of the `sp_keycloak` container. Rootless Podman
+drops `CAP_NET_RAW` and `CAP_NET_ADMIN`, so the sidecar needs the
 `--cap-add=net_admin,net_raw` flag. Leave it running:
 
 ```bash
 mkdir -p ~/capture
 podman run --rm --cap-add=net_admin,net_raw \
-  --network container:sp_openam docker.io/antrea/tshark \
-  tshark -i eth0 -w - > ~/capture/openam.pcap
+  --network container:sp_keycloak docker.io/antrea/tshark \
+  tshark -i eth0 -w - > ~/capture/keycloak.pcap
 ```
 
 `eth0` is the interface that podman creates for the container. To list the
 interfaces, run the same sidecar with `tshark -D` instead of `-i eth0`. To
 capture on every interface, use `-i any`.
 
-The capture goes to `~/capture/openam.pcap`. Start it before you log in and
+The capture goes to `~/capture/keycloak.pcap`. Start it before you log in and
 stop it with `Ctrl+C` after access is granted, so the file holds the LOGIN flow.
-Then open `~/capture/openam.pcap` in Wireshark and apply the `http` display
+Then open `~/capture/keycloak.pcap` in Wireshark and apply the `http` display
 filter.
 
 If Wireshark is not installed, print the cookies with `tshark` from the same
@@ -292,33 +300,25 @@ image:
 ```bash
 podman run -i --rm docker.io/antrea/tshark \
   tshark -r - -Y http.set_cookie -T fields -e http.set_cookie \
-  < ~/capture/openam.pcap
+  < ~/capture/keycloak.pcap
 ```
 
-**IMPORTANT:** To avoid messing up with the cookies, it is highly recommended to
-open the IDP configuration below in incognito mode or using a different browser.
-In case you see any HTTP 403 Forbidden error on the apache server, delete all
-cookies from your browser.
+Return to Wireshark to locate the Keycloak cookies in the response to the login
+request. The Service Provider sets both cookies together, and both carry the
+path of the realm, `/realms/siupc/`.
 
-Browse to <http://www.siupc.cat>. It should require the authentication of a user
-from the `administrator` group (e.g., `si_user`) to grant access.
-
-Return to Wireshark to locate the OpenAM cookies at two specific points: during
-the download of the login page and when access is officially granted.
-
-**IMPORTANT:** Report only the cookies that LOGIN sets. At LOGOUT, OpenAM sets
-the same two cookies with empty values, and those are not valid for this task.
-Test every `Set-Cookie` line: the value after `=` must not be empty.
+**IMPORTANT:** Report only the cookies that LOGIN sets. At LOGOUT, Keycloak sets
+the same cookies with empty values and `Max-Age=0`, and those are not valid for
+this task. Test every `Set-Cookie` line: the value after `=` must not be empty.
 
 ```text
 # LOGIN, non-empty value, keep these
-Set-Cookie: AMAuthCookie=AdeadbeefD...; Domain=www.siupc.cat
+Set-Cookie: KEYCLOAK_IDENTITY=eyJhbGciOi...; Version=1; Path=/realms/siupc/; HttpOnly
 ...
-Set-Cookie: IPlanetDirectoryPro=AdeadbeefD...; Domain=www.siupc.cat
+Set-Cookie: KEYCLOAK_SESSION=oyVDW99y...; Version=1; Path=/realms/siupc/; Max-Age=36000
 
 # LOGOUT, empty value, not valid
-Set-Cookie: AMAuthCookie=; Domain=www.siupc.cat
-Set-Cookie: IPlanetDirectoryPro=; Domain=www.siupc.cat
+Set-Cookie: KEYCLOAK_IDENTITY=; Version=1; Path=/realms/siupc/; Max-Age=0
 ```
 
 To find a string within a packet, click on Edit > Find Packet (CTRL+F). Under
@@ -336,20 +336,23 @@ one.
 
 - `student_idp.png`: creation of the IdP user with your data.
 - `student_sp.png`: creation of the SP user with your data.
-- `sso_succeeded.png`: the "Single Sign-on succeeded" result from
-  [Link the accounts](#link-the-accounts).
-- `signin_openam.png`: the login page of `www.siupc.cat`, together with the
+- `sso_linked.png`: the "Account already exists" step of
+  [Link the accounts](#link-the-accounts), or the identity provider links of
+  `student_sp` after the link.
+- `signin_keycloak.png`: the login page of `www.siupc.cat`, together with the
   terminal that runs the Apache server container.
 - `signin_works.png`: the same as above after you enter the `si_user`
   credentials ("It works!").
-- `wireshark1.png`: the `AMAuthCookie` cookie, which tracks the users in the
-  authentication process.
-- `wireshark2.png`: the `iPlanetDirectoryPro` cookie, the AM session cookie
-  after the user authenticates successfully.
-- `openam.pcap`: the captured network traffic.
+- `wireshark1.png`: the `KEYCLOAK_IDENTITY` cookie, which identifies the
+  authenticated user in the Service Provider.
+- `wireshark2.png`: the `KEYCLOAK_SESSION` cookie, which tracks the session that
+  the login opens.
+- `keycloak.pcap`: the captured network traffic.
 
 Wireshark must capture the whole HTTP message exchange.
 
 ## References
 
-- <https://github.com/OpenIdentityPlatform/OpenAM/wiki/Quick-Start-Guide>
+- <https://www.keycloak.org/docs/latest/server_admin/#_saml>
+- <https://www.keycloak.org/docs/latest/securing_apps/>
+- <https://github.com/OpenIDC/mod_auth_openidc>

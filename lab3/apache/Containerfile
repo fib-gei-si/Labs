@@ -1,0 +1,13 @@
+FROM docker.io/library/ubuntu:24.04
+
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      apache2 libapache2-mod-auth-openidc ca-certificates \
+ && rm -rf /var/lib/apt/lists/* \
+ && a2enmod auth_openidc \
+ && printf 'It works!\n' > /var/www/html/index.html
+
+COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
+
+# apache2ctl does not forward SIGTERM, and the container would take 10s to stop
+CMD . /etc/apache2/envvars && mkdir -p "$APACHE_RUN_DIR" && exec apache2 -DFOREGROUND
