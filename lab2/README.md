@@ -58,16 +58,16 @@ avoid them. We will use the following applications for this session:
    ```bash
    podman run -it --rm --name zaproxy \
      -p 127.0.0.1:3000:8080 \
-     -p 127.0.0.1:8008:8090 \
+     -p 127.0.0.1:8090:8090 \
      ghcr.io/zaproxy/zaproxy:stable zap-webswing.sh
    ```
 
-   Open <http://localhost:3000/zap/>. ZAP proxies on port `8008` of your
+   Open <http://localhost:3000/zap/>. ZAP proxies on port `8090` of your
    computer. To stop ZAP, close the tab and press `Ctrl+C` in the terminal.
 
    You can also
    [download the Linux package](https://www.zaproxy.org/download/), extract it
-   and run `./zap.sh -port 8008`. The package uses port `8080` by default, the
+   and run `./zap.sh -port 8090`. The package uses port `8080` by default, the
    same port as WebGoat.
 
 2. Run WebGoat in Podman:
@@ -96,13 +96,11 @@ avoid them. We will use the following applications for this session:
 
    b. Open `about:preferences` writing it in the address bar to open the
       general settings. Type "network" in the search bar to open "Network
-      Settings" to manually configure the proxy option as shown in the figure.
-      Set the HTTP proxy to `127.0.0.1` port `8008` and leave the HTTPS proxy
-      empty. WebGoat uses plain HTTP, and proxying HTTPS without ZAP's
-      certificate makes Firefox warn on every site. Observe that the field "No
-      Proxy for" does not contain "127.0.0.1" or "localhost".
-
-      ![Firefox Manual proxy configuration with HTTP Proxy 127.0.0.1 port 8008](img/img-001.png)
+      Settings" to manually configure the proxy option. Select "Manual proxy
+      configuration" and set the HTTP proxy to `127.0.0.1` port `8090`. Leave
+      the HTTPS proxy empty. WebGoat uses plain HTTP, and proxying HTTPS
+      without ZAP's certificate makes Firefox warn on every site. Observe that
+      the field "No Proxy for" does not contain "127.0.0.1" or "localhost".
 
 5. Open WebGoat. If ZAP runs in the Podman container, use
    <http://host.containers.internal:8080/webgoat/attack>, because from inside
