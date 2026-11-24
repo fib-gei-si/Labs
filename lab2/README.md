@@ -491,13 +491,12 @@ Each image is a full screen capture that shows:
 
 ## References
 
-- OWASP Project: <http://www.owasp.org>
+- OWASP Project: <https://owasp.org>
 - OWASP ZAP: <https://www.zaproxy.org>
-  - <https://www.zaproxy.org/docs/desktop/ui/tabs/break/>
-- OWASP Project at Sourceforge: <http://sourceforge.net/projects/owasp>
+- OWASP Source Code Center: <https://sourceforge.net/projects/owasp/>
 - Web Application Security Consortium (WASC): <http://www.webappsec.org>
-- Common Vulnerabilities and Exposures (CVE): <http://www.cve.mitre.org>
-  - <http://www.faqs.org/rfcs/rfc2660.html>
-  - <http://www.faqs.org/rfcs/rfc2616.html>
-  - <http://www.faqs.org/rfcs/rfc1945.html>
-- Secure Coding: Principles & Practices: <http://www.securecoding.org/>
+- Common Vulnerabilities and Exposures (CVE): <https://www.cve.org>
+- RFC 1945, HTTP/1.0: <https://www.rfc-editor.org/rfc/rfc1945.html>
+- RFC 2616, HTTP/1.1: <https://www.rfc-editor.org/rfc/rfc2616.html>
+- RFC 2660, Secure HTTP: <https://www.rfc-editor.org/rfc/rfc2660.html>
+- Secure Coding: Principles & Practices: <https://www.securecoding.org>
