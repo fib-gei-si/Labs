@@ -97,8 +97,10 @@ avoid them. We will use the following applications for this session:
    b. Open `about:preferences` writing it in the address bar to open the
       general settings. Type "network" in the search bar to open "Network
       Settings" to manually configure the proxy option as shown in the figure.
-      Observe that the field "No Proxy for" doesn't have either "127.0.0.1" nor
-      "localhost".
+      Set the HTTP proxy to `127.0.0.1` port `8008` and leave the HTTPS proxy
+      empty. WebGoat uses plain HTTP, and proxying HTTPS without ZAP's
+      certificate makes Firefox warn on every site. Observe that the field "No
+      Proxy for" does not contain "127.0.0.1" or "localhost".
 
       ![Firefox Manual proxy configuration with HTTP Proxy 127.0.0.1 port 8008](img/img-001.png)
 
