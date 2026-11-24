@@ -62,7 +62,7 @@ avoid them. We will use the following applications for this session:
      ghcr.io/zaproxy/zaproxy:stable zap-webswing.sh
    ```
 
-   Open <http://localhost:3000/zap/>. ZAP proxies on port `8090` of your
+   Open <http://127.0.0.1:3000/zap/>. ZAP proxies on port `8090` of your
    computer. To stop ZAP, close the tab and press `Ctrl+C` in the terminal.
 
    You can also
@@ -76,7 +76,7 @@ avoid them. We will use the following applications for this session:
    podman run --name webgoat -it --rm -p 8080:8080 ghcr.io/fib-gei-si/webgoat_legacy
    ```
 
-3. Open "Options → Breakpoints" in ZAP. Set "Break buttons mode" to
+3. Open "Tools → Options → Breakpoints" in ZAP. Set "Break buttons mode" to
    "separate" and enable "Show buttons to select the requests you don't want
    ZAP to break on". The top toolbar then has one button for requests and one
    for responses, and the Break tab lets you skip JavaScript, CSS and font, and
