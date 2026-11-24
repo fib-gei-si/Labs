@@ -85,7 +85,7 @@ avoid them. We will use the following applications for this session:
    ZAP traps the next message after you press a break button, and that message
    is not always the one you want: Firefox sends background requests, and a
    page loads many files. Click "Step" to forward the trapped message and trap
-   the next one, and click "Continue" to forward it and stop trapping.
+   the next one.
 
 4. Configure Firefox:
    a. Open `about:config` writing it in the address bar and set
@@ -150,8 +150,7 @@ steps:
 - ZAP traps the request and shows it in the "Break" tab. Open the "Body" view
   of the request panel and find the variables (QTY, SUBMIT, Price). One of the
   variables refers to the purchase price. Change the value of the price, then
-  click "Continue" in the toolbar. ZAP forwards the changed request and stops
-  trapping requests.
+  click "Continue" in the toolbar to send the changed request.
 
 #### e-mail not validated
 
