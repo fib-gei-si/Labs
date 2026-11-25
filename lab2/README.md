@@ -52,8 +52,7 @@ avoid them. We will use the following applications for this session:
 
 ## How to install
 
-1. Install and run OWASP ZAP. The easiest way is the Podman image with
-   Webswing, which shows the ZAP desktop in a browser tab:
+1. Run the OWASP ZAP image, which shows the ZAP desktop in a browser tab:
 
    ```bash
    podman run -it --rm --name zaproxy \
@@ -64,11 +63,6 @@ avoid them. We will use the following applications for this session:
 
    Open <http://127.0.0.1:3000/zap/>. ZAP proxies on port `8090` of your
    computer. To stop ZAP, close the tab and press `Ctrl+C` in the terminal.
-
-   You can also
-   [download the Linux package](https://www.zaproxy.org/download/), extract it
-   and run `./zap.sh -port 8090`. The package uses port `8080` by default, the
-   same port as WebGoat.
 
 2. Run WebGoat in Podman:
 
