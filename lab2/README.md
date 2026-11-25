@@ -61,8 +61,12 @@ avoid them. We will use the following applications for this session:
      ghcr.io/zaproxy/zaproxy:stable zap-webswing.sh
    ```
 
-   Open <http://127.0.0.1:3000/zap/>. ZAP proxies on port `8090` of your
-   computer. To stop ZAP, close the tab and press `Ctrl+C` in the terminal.
+   Open <http://127.0.0.1:3000/zap/>. ZAP opens a "Manage Add-ons" window; close
+   it. If ZAP asks "Do you want to persist the ZAP Session?", choose "No, I do
+   not want to persist this session at this moment in time" and click "Start".
+   ZAP starts its proxy on port `8090` only after you answer that prompt, so
+   answer it before you browse. To stop ZAP, close the tab and press `Ctrl+C` in
+   the terminal.
 
 2. Run WebGoat in Podman:
 
@@ -70,11 +74,11 @@ avoid them. We will use the following applications for this session:
    podman run --name webgoat -it --rm -p 8080:8080 ghcr.io/fib-gei-si/webgoat_legacy
    ```
 
-3. Open "Tools → Options → Breakpoints" in ZAP. Set "Break buttons mode" to
-   "separate" and enable "Show buttons to select the requests you don't want
-   ZAP to break on". The top toolbar then has one button for requests and one
-   for responses, and the Break tab lets you skip JavaScript, CSS and font, and
-   multimedia files.
+3. Open "Tools → Options → Breakpoints" in ZAP. Set "Break Buttons Mode" to
+   "Separate Request and Response Buttons" and enable "Show buttons to select
+   the requests you don't want ZAP to break on". The top toolbar then has one
+   button for requests and one for responses, and the Break tab has buttons to
+   ignore JavaScript, CSS and Fonts, and Multimedia files.
 
    ZAP traps the next message after you press a break button, and that message
    is not always the one you want: Firefox sends background requests, and a
@@ -207,9 +211,9 @@ validation.
 
 We need to intercept the server's responses. Click "Set break on all
 responses" in ZAP's top toolbar. ZAP also traps the scripts, style sheets and
-images of the page. When ZAP traps one of these files, click its button in the
-Break tab ("Javascript Files", "CSS and Fonts Files" or "Multimedia Files") to
-stop breaking on that kind of file.
+images of the page. When ZAP traps one of these files, click the "Set ignore
+breaks" buttons for JavaScript, CSS and Fonts, and Multimedia in the Break tab
+to stop breaking on that kind of file.
 
 Reload the browser's page to issue a new request. ZAP traps the response of
 the page in the "Break" tab. Open the "Body" view of the response panel and
