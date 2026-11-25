@@ -58,10 +58,12 @@ avoid them. We will use the following applications for this session:
    podman run -it --rm --name zaproxy \
      -p 127.0.0.1:3000:8080 \
      -p 127.0.0.1:8090:8090 \
-     ghcr.io/zaproxy/zaproxy:stable zap-webswing.sh
+     ghcr.io/zaproxy/zaproxy@sha256:9624669db72f54d86c4b46a7064518bd9bf79d8c61a4c31befa9923489f328af \
+     zap-webswing.sh
    ```
 
-   Open <http://127.0.0.1:3000/zap/>. ZAP opens a "Manage Add-ons" window; close
+   The digest pins ZAP 2.17.0, the version the steps below name. Open
+   <http://127.0.0.1:3000/zap/>. ZAP opens a "Manage Add-ons" window; close
    it. If ZAP asks "Do you want to persist the ZAP Session?", choose "No, I do
    not want to persist this session at this moment in time" and click "Start".
    ZAP starts its proxy on port `8090` only after you answer that prompt, so
@@ -71,7 +73,8 @@ avoid them. We will use the following applications for this session:
 2. Run WebGoat in Podman:
 
    ```bash
-   podman run --name webgoat -it --rm -p 8080:8080 ghcr.io/fib-gei-si/webgoat_legacy
+   podman run --name webgoat -it --rm -p 8080:8080 \
+     ghcr.io/fib-gei-si/webgoat_legacy@sha256:6a8a05481171d006c6169b716bab033a9ef84e96e77b4561f08b186dfa81d0de
    ```
 
 3. Open "Tools → Options → Breakpoints" in ZAP. Set "Break Buttons Mode" to
